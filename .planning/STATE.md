@@ -5,22 +5,22 @@
 See: `.planning/PROJECT.md` (updated 2026-05-14)
 
 **Core value:** Four CEEALAR team members can find, tag, schedule, and debrief any of 1,904 attendees from their phones with one hand while walking between sessions — no spreadsheet required.
-**Current focus:** Phase 1 — Auth + Shell
+**Current focus:** Phase 3 — Meetings + Notes
 
 ## Current Phase
 
-**Phase 2: Attendees**
-- Status: In Progress
-- Goal: XLSX import + virtualized browse + detail + strategic context
-- Next action: All 3 plans in Phase 2 complete — proceed to Phase 3 (Meetings + Notes)
+**Phase 3: Meetings + Notes**
+- Status: Not started
+- Goal: Full meeting lifecycle — create, prep, log notes, action items, status changes, activity writes
+- Next action: Run /gsd-plan-phase 3
 
 ## Phase History
 
 | Phase | Status | Completed |
 |-------|--------|-----------|
 | Phase 0: Bootstrap | Complete ✓ | 2026-05-14 |
-| Phase 1: Auth + Shell | In Progress | — |
-| Phase 2: Attendees | In Progress (02-03 complete) | — |
+| Phase 1: Auth + Shell | Complete ✓ | 2026-05-14 |
+| Phase 2: Attendees | Complete ✓ | 2026-05-15 |
 | Phase 3: Meetings + Notes | Not started | — |
 | Phase 4: Tags + Filters | Not started | — |
 | Phase 5: Schedule + Conflicts | Not started | — |
@@ -30,29 +30,23 @@ See: `.planning/PROJECT.md` (updated 2026-05-14)
 
 ## Blocked On
 
-Nothing — 01-01 complete, proceeding to 01-02.
+Nothing — Phase 2 complete, proceeding to Phase 3.
 
-## Pending User Actions (before Phase 2)
+## Pending User Actions (before Phase 3)
 
-- [ ] Run Supabase migration SQL (`ceealar-pulse/supabase/migrations/0001_team_members.sql`) in Supabase SQL editor
-- [ ] Configure Google OAuth provider in Supabase Auth dashboard (Authorized redirect URL: `https://cjjlctmdfbvutjtoxagm.supabase.co/auth/v1/callback`)
-- [ ] Place Swapcard XLSX at `./data/swapcard.xlsx` (gitignored)
+- [ ] Run Supabase migration for meetings/action_items/activity tables (will be generated in 03-01-PLAN.md)
 
 ## Live URLs
 
 - **App:** https://eag-london2026.vercel.app/
 - **GitHub:** https://github.com/CEEALAR/EAGLondon2026
 
-## Pending User Actions (before Phase 2)
-
-- [ ] Place Swapcard XLSX at `./data/swapcard.xlsx` (gitignored)
-
 ## Key Env Vars
 
 ```
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
+NEXT_PUBLIC_SUPABASE_URL=https://cjjlctmdfbvutjtoxagm.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<set in Vercel>
+SUPABASE_SERVICE_ROLE_KEY=<set in Vercel — server-side only>
 ```
 
 Google OAuth configured in Supabase Auth dashboard (not env vars).
@@ -69,6 +63,9 @@ Google OAuth configured in Supabase Auth dashboard (not env vars).
 - ProfileField extracted as inline helper component (not separate file) to DRY 11 profile field renders (Plan 02-03)
 - StrategicContextForm uses per-field savedField state (string | null) for per-field Saved indicator (Plan 02-03)
 - notFound() called immediately on null attendee for correct 404 handling of invalid UUIDs (Plan 02-03)
+- Expertise chips hidden on mobile (sm:hidden) to give name/company room in 72px rows (fix post-02-02)
+- StrategicContextForm Saved indicator shown optimistically (before await) — React 19 async state timing (fix post-02-03)
+- Import skips 91 rows with blank swapcard_url — these are incomplete/internal Swapcard accounts, expected (Phase 2 UAT)
 
 ## Performance Metrics
 
@@ -76,9 +73,12 @@ Google OAuth configured in Supabase Auth dashboard (not env vars).
 |-------|------|----------|-------|-------|
 | 00-bootstrap | 00-01 | ~30 min | 2 | 20+ |
 | 01-auth-shell | 01-01 | ~12 min | 3 | 8 |
+| 01-auth-shell | 01-02 | ~15 min | 3 | 5 |
+| 02-attendees | 02-01 | ~15 min | 3 | 4 |
+| 02-attendees | 02-02 | ~15 min | 3 | 3 |
 | 02-attendees | 02-03 | ~15 min | 2 | 2 |
 
 ---
 *State initialized: 2026-05-14*
-*Last session: 2026-05-15 — Completed 02-03-PLAN.md (attendee detail page + StrategicContextForm autosave)*
-*Stopped at: Phase 3 (Meetings + Notes) — pending Phase 1 and Phase 2 prerequisites*
+*Last session: 2026-05-15 — Completed Phase 2 (Attendees). 1,813 attendees imported, browse + detail + strategic context verified.*
+*Stopped at: Phase 3 (Meetings + Notes) — run /gsd-plan-phase 3*

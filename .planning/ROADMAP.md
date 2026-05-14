@@ -47,7 +47,7 @@
 
 Plans:
 - [x] 01-01-PLAN.md — Supabase clients, middleware, auth callback (domain check + upsert), sign-in page, root redirect, migration SQL
-- [ ] 01-02-PLAN.md — Nav shell layout, bottom tab bar, top nav + profile dropdown, placeholder pages
+- [x] 01-02-PLAN.md — Nav shell layout, bottom tab bar, top nav + profile dropdown, placeholder pages
 
 **Dependencies:** Supabase project URL + anon key, Google OAuth credentials from Attila
 
@@ -72,8 +72,8 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — attendees migration SQL, TypeScript types, XLSX import API route, admin import UI
-- [ ] 02-02-PLAN.md — virtualized attendee list (TanStack Virtual), server page, search, filter sheet stub
+- [x] 02-01-PLAN.md — attendees migration SQL, TypeScript types, XLSX import API route, admin import UI
+- [x] 02-02-PLAN.md — virtualized attendee list (TanStack Virtual), server page, search, filter sheet stub
 - [x] 02-03-PLAN.md — attendee detail page (all 15 fields), strategic context autosave form, stubs for tags/meetings/schedule CTA
 
 **Dependencies:** Swapcard XLSX at `./data/swapcard.xlsx` (gitignored), migration applied

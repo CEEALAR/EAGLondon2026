@@ -121,32 +121,32 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| BOOT-01 | Phase 0 | Pending |
-| BOOT-02 | Phase 0 | Pending |
-| BOOT-03 | Phase 0 | Pending |
-| AUTH-01 | Phase 1 | Pending |
-| AUTH-02 | Phase 1 | Pending |
-| AUTH-03 | Phase 1 | Pending |
-| AUTH-04 | Phase 1 | Pending |
-| AUTH-05 | Phase 1 | Pending |
-| AUTH-06 | Phase 1 | Pending |
-| IMPORT-01 | Phase 2 | Pending |
-| IMPORT-02 | Phase 2 | Pending |
-| IMPORT-03 | Phase 2 | Pending |
-| IMPORT-04 | Phase 2 | Pending |
-| IMPORT-05 | Phase 2 | Pending |
-| IMPORT-06 | Phase 2 | Pending |
-| IMPORT-07 | Phase 2 | Pending |
-| IMPORT-08 | Phase 2 | Pending |
-| ATT-01 | Phase 2 | Pending |
-| ATT-02 | Phase 2 | Pending |
-| ATT-03 | Phase 2 | Pending |
-| ATT-04 | Phase 2 | Pending |
-| ATT-05 | Phase 2 | Pending |
-| ATT-06 | Phase 2 | Pending |
+| BOOT-01 | Phase 0 | Complete ✓ |
+| BOOT-02 | Phase 0 | Complete ✓ |
+| BOOT-03 | Phase 0 | Complete ✓ |
+| AUTH-01 | Phase 1 | Complete ✓ |
+| AUTH-02 | Phase 1 | Complete ✓ |
+| AUTH-03 | Phase 1 | Complete ✓ |
+| AUTH-04 | Phase 1 | Complete ✓ |
+| AUTH-05 | Phase 1 | Complete ✓ |
+| AUTH-06 | Phase 1 | Complete ✓ |
+| IMPORT-01 | Phase 2 | Complete ✓ |
+| IMPORT-02 | Phase 2 | Complete ✓ |
+| IMPORT-03 | Phase 2 | Complete ✓ |
+| IMPORT-04 | Phase 2 | Complete ✓ |
+| IMPORT-05 | Phase 2 | Complete ✓ |
+| IMPORT-06 | Phase 2 | Complete ✓ |
+| IMPORT-07 | Phase 2 | Complete ✓ |
+| IMPORT-08 | Phase 2 | Complete ✓ |
+| ATT-01 | Phase 2 | Complete ✓ |
+| ATT-02 | Phase 2 | Complete ✓ |
+| ATT-03 | Phase 2 | Complete ✓ |
+| ATT-04 | Phase 2 | Complete ✓ |
+| ATT-05 | Phase 2 | Complete ✓ |
+| ATT-06 | Phase 2 | Complete ✓ |
 | ATT-07 | Phase 4 | Pending |
 | ATT-08 | Phase 3 | Pending |
-| ATT-09 | Phase 2 | Pending |
+| ATT-09 | Phase 2 | Complete ✓ |
 | MEET-01 | Phase 3 | Pending |
 | MEET-02 | Phase 3 | Pending |
 | MEET-03 | Phase 3 | Pending |
