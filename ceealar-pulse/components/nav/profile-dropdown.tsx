@@ -4,7 +4,6 @@ import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu'
@@ -46,10 +45,10 @@ export function ProfileDropdown({ user }: ProfileDropdownProps) {
         )}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuLabel>
+        <div className="px-2 py-1.5">
           <div className="font-medium text-sm">{user.display_name ?? user.email}</div>
           <div className="text-xs text-muted-foreground">{user.email}</div>
-        </DropdownMenuLabel>
+        </div>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut}>
           Sign out
