@@ -26,6 +26,7 @@
 **Mode:** mvp
 **Target time:** 30 minutes
 **Requirements:** BOOT-01, BOOT-02, BOOT-03
+**Progress:** Plan 01 complete (scaffold + deps + brand) | Plan 02 pending (GitHub + Vercel)
 
 **Success Criteria:**
 1. `npx create-next-app@latest ceealar-pulse --typescript --tailwind --app --no-src-dir` runs clean
