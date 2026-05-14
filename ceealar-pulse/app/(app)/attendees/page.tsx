@@ -1,8 +1,17 @@
-export default function AttendeesPage() {
-  return (
-    <div className="p-4">
-      <h1 className="text-xl font-semibold text-foreground">Attendees</h1>
-      <p className="text-muted-foreground mt-2">Coming in Phase 2.</p>
-    </div>
-  )
+import { createClient } from '@/lib/supabase/server'
+import { Attendee } from '@/lib/types'
+import { AttendeeList } from './_components/attendee-list'
+
+export default async function AttendeesPage() {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('attendees')
+    .select('*')
+    .order('last_name', { ascending: true })
+
+  if (error) {
+    console.error('[AttendeesPage] Failed to fetch attendees:', error.message)
+  }
+
+  return <AttendeeList attendees={(data as Attendee[]) ?? []} />
 }
