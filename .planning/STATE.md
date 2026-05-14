@@ -10,16 +10,16 @@ See: `.planning/PROJECT.md` (updated 2026-05-14)
 ## Current Phase
 
 **Phase 1: Auth + Shell**
-- Status: BLOCKED — awaiting Supabase credentials + Google OAuth from Attila
+- Status: In Progress
 - Goal: Google OAuth restricted to @ceealar.org + nav shell
-- Next action: Provide credentials → `/gsd-plan-phase 1`
+- Next action: Execute 01-02-PLAN.md (nav shell, bottom tab bar, placeholder pages)
 
 ## Phase History
 
 | Phase | Status | Completed |
 |-------|--------|-----------|
 | Phase 0: Bootstrap | Complete ✓ | 2026-05-14 |
-| Phase 1: Auth + Shell | Blocked | — |
+| Phase 1: Auth + Shell | In Progress | — |
 | Phase 2: Attendees | Not started | — |
 | Phase 3: Meetings + Notes | Not started | — |
 | Phase 4: Tags + Filters | Not started | — |
@@ -30,17 +30,13 @@ See: `.planning/PROJECT.md` (updated 2026-05-14)
 
 ## Blocked On
 
-Nothing yet.
+Nothing — 01-01 complete, proceeding to 01-02.
 
-## Pending User Actions (before Phase 1)
+## Pending User Actions (before Phase 2)
 
-- [ ] Provide Supabase project URL (https://xxxx.supabase.co)
-- [ ] Provide Supabase anon key (eyJ...)
-- [ ] Provide Supabase service role key (eyJ...)
-- [ ] Provide Google OAuth client ID
-- [ ] Provide Google OAuth client secret
-- [ ] Set env vars in Vercel dashboard (Phase 1 will list exact var names)
-- [ ] Run Supabase migration SQL (provided at end of Phase 1)
+- [ ] Run Supabase migration SQL (`ceealar-pulse/supabase/migrations/0001_team_members.sql`) in Supabase SQL editor
+- [ ] Configure Google OAuth provider in Supabase Auth dashboard (Authorized redirect URL: `https://cjjlctmdfbvutjtoxagm.supabase.co/auth/v1/callback`)
+- [ ] Place Swapcard XLSX at `./data/swapcard.xlsx` (gitignored)
 
 ## Live URLs
 
@@ -67,14 +63,18 @@ Google OAuth configured in Supabase Auth dashboard (not env vars).
 - DM Sans for body, Playfair Display italic for accent — no Geist fonts (Plan 00-01)
 - Brand colors as CSS custom properties: --color-teal #0F766E, --color-gold #D4A017, --color-cream #FAF7F0 (Plan 00-01)
 - Supabase SDK pre-installed but no client configured in Phase 0 — env vars deferred to Phase 1 (Plan 00-01)
+- Service role client created inline in callback route with empty cookie store — RLS has no INSERT policy on team_members (Plan 01-01)
+- PKCE flow accepted as CSRF protection for OAuth (Supabase default) (Plan 01-01)
+- useSearchParams wrapped in Suspense boundary — required by Next.js 15 static generation (Plan 01-01)
 
 ## Performance Metrics
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
 | 00-bootstrap | 00-01 | ~30 min | 2 | 20+ |
+| 01-auth-shell | 01-01 | ~12 min | 3 | 8 |
 
 ---
 *State initialized: 2026-05-14*
-*Last session: 2026-05-14 — Completed 00-01-PLAN.md (scaffold + brand)*
-*Stopped at: 00-02-PLAN.md (GitHub push + Vercel deploy)*
+*Last session: 2026-05-14 — Completed 01-01-PLAN.md (Supabase auth — clients, middleware, callback, sign-in page)*
+*Stopped at: 01-02-PLAN.md (nav shell, bottom tab bar, placeholder pages)*

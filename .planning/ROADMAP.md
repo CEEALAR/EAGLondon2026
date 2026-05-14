@@ -46,7 +46,7 @@
 **Plans:** 2 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Supabase clients, middleware, auth callback (domain check + upsert), sign-in page, root redirect, migration SQL
+- [x] 01-01-PLAN.md — Supabase clients, middleware, auth callback (domain check + upsert), sign-in page, root redirect, migration SQL
 - [ ] 01-02-PLAN.md — Nav shell layout, bottom tab bar, top nav + profile dropdown, placeholder pages
 
 **Dependencies:** Supabase project URL + anon key, Google OAuth credentials from Attila
@@ -204,4 +204,4 @@ All 8 phases complete. Four team members verify on 29 May at EAG London venue:
 
 ---
 *Roadmap created: 2026-05-14*
-*Last updated: 2026-05-14 — Phase 1 plans created*
+*Last updated: 2026-05-14 — 01-01 complete (Supabase auth)*
