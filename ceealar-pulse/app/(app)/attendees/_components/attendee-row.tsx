@@ -44,9 +44,9 @@ export function AttendeeRow({ attendee, style }: AttendeeRowProps) {
           <p className="text-xs text-muted-foreground truncate">{companyJob}</p>
         </div>
 
-        {/* Expertise chips */}
+        {/* Expertise chips — hidden on mobile to give name room */}
         {attendee.expertise && attendee.expertise.length > 0 && (
-          <div className="flex gap-1 shrink-0">
+          <div className="hidden sm:flex gap-1 shrink-0">
             {attendee.expertise.slice(0, 2).map((exp) => (
               <Badge key={exp} variant="secondary" className="text-xs">
                 {exp}

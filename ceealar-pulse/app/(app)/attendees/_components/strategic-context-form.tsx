@@ -29,11 +29,11 @@ export function StrategicContextForm({ attendeeId, initialValues }: StrategicCon
   const [values, setValues] = useState(initialValues)
   const [savedField, setSavedField] = useState<string | null>(null)
 
-  const handleBlur = async (key: FieldKey, value: string) => {
-    const supabase = createClient()
-    await supabase.from('attendees').update({ [key]: value || null }).eq('id', attendeeId)
+  const handleBlur = (key: FieldKey, value: string) => {
     setSavedField(key)
     setTimeout(() => setSavedField(null), 2000)
+    const supabase = createClient()
+    supabase.from('attendees').update({ [key]: value || null }).eq('id', attendeeId)
   }
 
   return (
