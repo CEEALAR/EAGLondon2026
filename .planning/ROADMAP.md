@@ -69,6 +69,12 @@ Plans:
 **Mode:** mvp
 **Target time:** 2 hours
 **Requirements:** IMPORT-01–08, ATT-01–09
+**Plans:** 3 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — attendees migration SQL, TypeScript types, XLSX import API route, admin import UI
+- [ ] 02-02-PLAN.md — virtualized attendee list (TanStack Virtual), server page, search, filter sheet stub
+- [ ] 02-03-PLAN.md — attendee detail page (all 15 fields), strategic context autosave form, stubs for tags/meetings/schedule CTA
 
 **Dependencies:** Swapcard XLSX at `./data/swapcard.xlsx` (gitignored), migration applied
 
@@ -204,4 +210,4 @@ All 8 phases complete. Four team members verify on 29 May at EAG London venue:
 
 ---
 *Roadmap created: 2026-05-14*
-*Last updated: 2026-05-14 — 01-01 complete (Supabase auth)*
+*Last updated: 2026-05-14 — Phase 2 planned (3 plans, 2 waves)*
