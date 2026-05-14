@@ -43,6 +43,11 @@
 **Mode:** mvp
 **Target time:** 45 minutes
 **Requirements:** AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05, AUTH-06
+**Plans:** 2 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Supabase clients, middleware, auth callback (domain check + upsert), sign-in page, root redirect, migration SQL
+- [ ] 01-02-PLAN.md — Nav shell layout, bottom tab bar, top nav + profile dropdown, placeholder pages
 
 **Dependencies:** Supabase project URL + anon key, Google OAuth credentials from Attila
 
@@ -199,4 +204,4 @@ All 8 phases complete. Four team members verify on 29 May at EAG London venue:
 
 ---
 *Roadmap created: 2026-05-14*
-*Last updated: 2026-05-14 after initialization*
+*Last updated: 2026-05-14 — Phase 1 plans created*
