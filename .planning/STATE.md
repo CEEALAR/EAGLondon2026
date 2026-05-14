@@ -5,22 +5,21 @@
 See: `.planning/PROJECT.md` (updated 2026-05-14)
 
 **Core value:** Four CEEALAR team members can find, tag, schedule, and debrief any of 1,904 attendees from their phones with one hand while walking between sessions — no spreadsheet required.
-**Current focus:** Phase 0 — Bootstrap
+**Current focus:** Phase 1 — Auth + Shell
 
 ## Current Phase
 
-**Phase 0: Bootstrap**
-- Status: IN PROGRESS — Plan 01 complete, Plan 02 pending
-- Goal: Deployed Next.js 15 shell with live Vercel URL
-- Plans: 2 plans in 2 waves (00-01-PLAN.md complete, 00-02-PLAN.md next)
-- Next action: Execute 00-02-PLAN.md (GitHub push + Vercel deploy)
+**Phase 1: Auth + Shell**
+- Status: BLOCKED — awaiting Supabase credentials + Google OAuth from Attila
+- Goal: Google OAuth restricted to @ceealar.org + nav shell
+- Next action: Provide credentials → `/gsd-plan-phase 1`
 
 ## Phase History
 
 | Phase | Status | Completed |
 |-------|--------|-----------|
-| Phase 0: Bootstrap | In Progress | — |
-| Phase 1: Auth + Shell | Not started | — |
+| Phase 0: Bootstrap | Complete ✓ | 2026-05-14 |
+| Phase 1: Auth + Shell | Blocked | — |
 | Phase 2: Attendees | Not started | — |
 | Phase 3: Meetings + Notes | Not started | — |
 | Phase 4: Tags + Filters | Not started | — |
@@ -33,17 +32,20 @@ See: `.planning/PROJECT.md` (updated 2026-05-14)
 
 Nothing yet.
 
-## Pending User Actions (before Phase 0)
+## Pending User Actions (before Phase 1)
 
-- [ ] Create Supabase project → provide URL + anon key + service role key
-- [ ] Set up Google Cloud OAuth client → provide client ID + secret
-- [ ] Create empty GitHub repo → provide URL
-- [ ] Create Vercel project linked to repo
+- [ ] Provide Supabase project URL (https://xxxx.supabase.co)
+- [ ] Provide Supabase anon key (eyJ...)
+- [ ] Provide Supabase service role key (eyJ...)
+- [ ] Provide Google OAuth client ID
+- [ ] Provide Google OAuth client secret
+- [ ] Set env vars in Vercel dashboard (Phase 1 will list exact var names)
+- [ ] Run Supabase migration SQL (provided at end of Phase 1)
 
-## Pending User Actions (after Phase 0)
+## Live URLs
 
-- [ ] Set env vars in Vercel dashboard (exact vars listed at end of Phase 0)
-- [ ] Run Supabase migration SQL (provided after Phase 0)
+- **App:** https://eag-london2026.vercel.app/
+- **GitHub:** https://github.com/CEEALAR/EAGLondon2026
 
 ## Pending User Actions (before Phase 2)
 
