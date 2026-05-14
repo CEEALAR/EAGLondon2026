@@ -144,8 +144,8 @@
 | ATT-04 | Phase 2 | Pending |
 | ATT-05 | Phase 2 | Pending |
 | ATT-06 | Phase 2 | Pending |
-| ATT-07 | Phase 2 | Pending |
-| ATT-08 | Phase 2 | Pending |
+| ATT-07 | Phase 4 | Pending |
+| ATT-08 | Phase 3 | Pending |
 | ATT-09 | Phase 2 | Pending |
 | MEET-01 | Phase 3 | Pending |
 | MEET-02 | Phase 3 | Pending |
