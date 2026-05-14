@@ -1,1 +1,0 @@
-# EAGLondon2026
