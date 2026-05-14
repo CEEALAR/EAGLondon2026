@@ -10,16 +10,16 @@ See: `.planning/PROJECT.md` (updated 2026-05-14)
 ## Current Phase
 
 **Phase 0: Bootstrap**
-- Status: NOT STARTED
+- Status: PLANNED — ready to execute
 - Goal: Deployed Next.js 15 shell with live Vercel URL
-- Target: 30 minutes
-- Next action: `/gsd-plan-phase 0`
+- Plans: 2 plans in 2 waves (00-01-PLAN.md, 00-02-PLAN.md)
+- Next action: `/gsd-execute-phase 0`
 
 ## Phase History
 
 | Phase | Status | Completed |
 |-------|--------|-----------|
-| Phase 0: Bootstrap | Not started | — |
+| Phase 0: Bootstrap | Planned | 2026-05-14 |
 | Phase 1: Auth + Shell | Not started | — |
 | Phase 2: Attendees | Not started | — |
 | Phase 3: Meetings + Notes | Not started | — |
