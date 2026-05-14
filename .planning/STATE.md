@@ -9,10 +9,10 @@ See: `.planning/PROJECT.md` (updated 2026-05-14)
 
 ## Current Phase
 
-**Phase 1: Auth + Shell**
+**Phase 2: Attendees**
 - Status: In Progress
-- Goal: Google OAuth restricted to @ceealar.org + nav shell
-- Next action: Execute 01-02-PLAN.md (nav shell, bottom tab bar, placeholder pages)
+- Goal: XLSX import + virtualized browse + detail + strategic context
+- Next action: All 3 plans in Phase 2 complete — proceed to Phase 3 (Meetings + Notes)
 
 ## Phase History
 
@@ -20,7 +20,7 @@ See: `.planning/PROJECT.md` (updated 2026-05-14)
 |-------|--------|-----------|
 | Phase 0: Bootstrap | Complete ✓ | 2026-05-14 |
 | Phase 1: Auth + Shell | In Progress | — |
-| Phase 2: Attendees | Not started | — |
+| Phase 2: Attendees | In Progress (02-03 complete) | — |
 | Phase 3: Meetings + Notes | Not started | — |
 | Phase 4: Tags + Filters | Not started | — |
 | Phase 5: Schedule + Conflicts | Not started | — |
@@ -66,6 +66,9 @@ Google OAuth configured in Supabase Auth dashboard (not env vars).
 - Service role client created inline in callback route with empty cookie store — RLS has no INSERT policy on team_members (Plan 01-01)
 - PKCE flow accepted as CSRF protection for OAuth (Supabase default) (Plan 01-01)
 - useSearchParams wrapped in Suspense boundary — required by Next.js 15 static generation (Plan 01-01)
+- ProfileField extracted as inline helper component (not separate file) to DRY 11 profile field renders (Plan 02-03)
+- StrategicContextForm uses per-field savedField state (string | null) for per-field Saved indicator (Plan 02-03)
+- notFound() called immediately on null attendee for correct 404 handling of invalid UUIDs (Plan 02-03)
 
 ## Performance Metrics
 
@@ -73,8 +76,9 @@ Google OAuth configured in Supabase Auth dashboard (not env vars).
 |-------|------|----------|-------|-------|
 | 00-bootstrap | 00-01 | ~30 min | 2 | 20+ |
 | 01-auth-shell | 01-01 | ~12 min | 3 | 8 |
+| 02-attendees | 02-03 | ~15 min | 2 | 2 |
 
 ---
 *State initialized: 2026-05-14*
-*Last session: 2026-05-14 — Completed 01-01-PLAN.md (Supabase auth — clients, middleware, callback, sign-in page)*
-*Stopped at: 01-02-PLAN.md (nav shell, bottom tab bar, placeholder pages)*
+*Last session: 2026-05-15 — Completed 02-03-PLAN.md (attendee detail page + StrategicContextForm autosave)*
+*Stopped at: Phase 3 (Meetings + Notes) — pending Phase 1 and Phase 2 prerequisites*
