@@ -19,12 +19,21 @@ export default async function MeetingsPage() {
     supabase.from('team_members').select('id, display_name, email').order('display_name'),
   ])
 
-  const meetings: TimelineMeeting[] = (meetingsRaw ?? []).map((m: any) => ({
+  type MeetingRaw = {
+    id: string
+    status: string
+    scheduled_at: string
+    location: string | null
+    owner_id: string | null
+    attendees: { first_name: string | null; last_name: string | null } | null
+  }
+
+  const meetings: TimelineMeeting[] = ((meetingsRaw ?? []) as unknown as MeetingRaw[]).map((m) => ({
     id: m.id,
     status: m.status as MeetingStatus,
-    scheduled_at: m.scheduled_at as string,
-    location: m.location as string | null,
-    owner_id: m.owner_id as string | null,
+    scheduled_at: m.scheduled_at,
+    location: m.location,
+    owner_id: m.owner_id,
     attendee_name:
       [m.attendees?.first_name, m.attendees?.last_name].filter(Boolean).join(' ') ||
       'Unknown',

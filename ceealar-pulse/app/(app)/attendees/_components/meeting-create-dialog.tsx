@@ -78,8 +78,6 @@ export function MeetingCreateDialog({
     }
   }
 
-  const selectedOwner = teamMembers.find(m => m.id === ownerId)
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <Button variant="default" onClick={() => setOpen(true)}>Schedule Meeting</Button>

@@ -12,7 +12,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Pencil } from 'lucide-react'
-import type { TeamMember, MeetingStatus } from '@/lib/types'
+import type { TeamMember } from '@/lib/types'
 
 interface EditMeetingButtonProps {
   meetingId: string
