@@ -169,6 +169,12 @@ Plans:
 **Mode:** mvp
 **Target time:** 1 hour
 **Requirements:** EXP-01–05
+**Plans:** 3 plans
+
+Plans:
+- [ ] 07-01-PLAN.md — CSV export API route + admin export page + PWA manifest + app icons (EXP-01, EXP-02)
+- [ ] 07-02-PLAN.md — NotificationProvider client component + layout wiring (EXP-03)
+- [ ] 07-03-PLAN.md — Skeleton loading.tsx for attendees/meetings/feed + empty states (EXP-04, EXP-05)
 
 **Success Criteria:**
 1. `/admin/export` downloads CSV with correct headers and ~1,904 rows
@@ -215,4 +221,4 @@ All 8 phases complete. Four team members verify on 29 May at EAG London venue:
 
 ---
 *Roadmap created: 2026-05-14*
-*Last updated: 2026-05-15 — Phase 2 plan 02-03 complete (attendee detail + strategic context autosave)*
+*Last updated: 2026-05-15 — Phase 7 planned (3 plans: CSV export + PWA, notifications, skeleton/empty states)*
