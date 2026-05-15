@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { BottomTabBar } from '@/components/nav/bottom-tab-bar'
 import { TopNav } from '@/components/nav/top-nav'
+import { RealtimeProvider } from '@/components/realtime-provider'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -28,7 +29,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <div className="min-h-screen bg-[var(--color-cream)]">
       <TopNav user={userForNav} />
       <main className="md:pt-14 pb-16 md:pb-0">
-        {children}
+        <RealtimeProvider>{children}</RealtimeProvider>
       </main>
       <BottomTabBar />
     </div>
