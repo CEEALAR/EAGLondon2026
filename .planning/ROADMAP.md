@@ -116,6 +116,11 @@ Plans:
 **Mode:** mvp
 **Target time:** 45 minutes
 **Requirements:** TAG-01–04
+**Plans:** 2 plans
+
+Plans:
+- [ ] 04-01-PLAN.md — Supabase migration (tags + attendee_tags), TypeScript types, 6 API routes
+- [ ] 04-02-PLAN.md — Tag chips + AddTagPopover, /attendees multi-tag filter, /me/tags management page
 
 **Success Criteria:**
 1. Tag chips on attendee detail show name + color; X removes assignment
