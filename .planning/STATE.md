@@ -9,10 +9,10 @@ See: `.planning/PROJECT.md` (updated 2026-05-14)
 
 ## Current Phase
 
-**Phase 4: Tags + Filters**
-- Status: Executed — pending UAT
-- Goal: Tag chips, create with color picker, multi-tag filter, tag management page
-- Next action: Apply `0004_tags.sql` in Supabase SQL editor, then browser UAT
+**Phase 5: Schedule + Conflicts**
+- Status: Not started
+- Goal: Calendar/schedule view, conflict detection, session awareness
+- Next action: Run /gsd-plan-phase 5
 
 ## Phase History
 
@@ -22,7 +22,7 @@ See: `.planning/PROJECT.md` (updated 2026-05-14)
 | Phase 1: Auth + Shell | Complete ✓ | 2026-05-14 |
 | Phase 2: Attendees | Complete ✓ | 2026-05-15 |
 | Phase 3: Meetings + Notes | Complete ✓ | 2026-05-15 |
-| Phase 4: Tags + Filters | Pending UAT | — |
+| Phase 4: Tags + Filters | Complete ✓ | 2026-05-15 |
 | Phase 5: Schedule + Conflicts | Not started | — |
 | Phase 6: Realtime + Feed | Not started | — |
 | Phase 7: Export + Polish | Not started | — |
@@ -86,5 +86,5 @@ Google OAuth configured in Supabase Auth dashboard (not env vars).
 
 ---
 *State initialized: 2026-05-14*
-*Last session: 2026-05-15 — Completed Phase 4 (Tags + Filters) implementation. Tag chips on attendee detail with AddTagPopover (search + create + 8-swatch color picker), multi-tag AND filter on /attendees, /me/tags management page. Migration 0004_tags.sql needs to be applied in Supabase SQL editor before UAT.*
-*Stopped at: Phase 4 UAT — apply 0004_tags.sql first, then browser test*
+*Last session: 2026-05-15 — Completed Phase 4 (Tags + Filters) with UAT approval. Tag chips on attendee detail with AddTagPopover (search + create + 8-swatch color picker), multi-tag AND filter on /attendees, /me/tags management page.*
+*Stopped at: Phase 5 (Schedule + Conflicts) — run /gsd-plan-phase 5*
