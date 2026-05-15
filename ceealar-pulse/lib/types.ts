@@ -26,6 +26,7 @@ export type Attendee = {
   collaboration_hooks: string | null
   created_at: string
   updated_at: string
+  attendee_tags?: { tag_id: string }[]
 }
 
 // ── Team Members ──────────────────────────────────────────────────────────────
@@ -95,5 +96,21 @@ export type Activity = {
   attendee_id: string | null
   action: ActivityAction
   detail: Record<string, unknown> | null
+  created_at: string
+}
+
+export type Tag = {
+  id: string
+  name: string
+  color: string
+  created_by: string | null
+  is_system: boolean
+  created_at: string
+}
+
+export type AttendeeTag = {
+  attendee_id: string
+  tag_id: string
+  created_by: string | null
   created_at: string
 }
