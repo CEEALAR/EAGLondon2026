@@ -10,9 +10,9 @@ See: `.planning/PROJECT.md` (updated 2026-05-14)
 ## Current Phase
 
 **Phase 5: Schedule + Conflicts**
-- Status: Not started
+- Status: Pending UAT
 - Goal: Calendar/schedule view, conflict detection, session awareness
-- Next action: Run /gsd-plan-phase 5
+- Next action: Browser UAT on /meetings schedule view and conflict banners
 
 ## Phase History
 
@@ -23,7 +23,7 @@ See: `.planning/PROJECT.md` (updated 2026-05-14)
 | Phase 2: Attendees | Complete ✓ | 2026-05-15 |
 | Phase 3: Meetings + Notes | Complete ✓ | 2026-05-15 |
 | Phase 4: Tags + Filters | Complete ✓ | 2026-05-15 |
-| Phase 5: Schedule + Conflicts | Not started | — |
+| Phase 5: Schedule + Conflicts | Pending UAT | — |
 | Phase 6: Realtime + Feed | Not started | — |
 | Phase 7: Export + Polish | Not started | — |
 | Phase 8: Ship + Verify | Not started | — |
