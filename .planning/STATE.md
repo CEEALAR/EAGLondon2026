@@ -9,10 +9,10 @@ See: `.planning/PROJECT.md` (updated 2026-05-14)
 
 ## Current Phase
 
-**Phase 7: Export + Polish**
-- Status: Ready to execute (3 plans, 1 wave)
-- Goal: CSV export, PWA, browser notifications, skeleton states, empty states
-- Next action: Run /gsd-execute-phase 7
+**Phase 8: Ship + Verify**
+- Status: Not started
+- Goal: Production smoke test on real phones, README, four-team sign-off
+- Next action: Run /gsd-plan-phase 8
 
 ## Phase History
 
@@ -25,7 +25,7 @@ See: `.planning/PROJECT.md` (updated 2026-05-14)
 | Phase 4: Tags + Filters | Complete ✓ | 2026-05-15 |
 | Phase 5: Schedule + Conflicts | Complete ✓ | 2026-05-15 |
 | Phase 6: Realtime + Feed | Complete ✓ | 2026-05-15 |
-| Phase 7: Export + Polish | Not started | — |
+| Phase 7: Export + Polish | Complete ✓ | 2026-05-15 |
 | Phase 8: Ship + Verify | Not started | — |
 
 ## Blocked On
@@ -86,5 +86,5 @@ Google OAuth configured in Supabase Auth dashboard (not env vars).
 
 ---
 *State initialized: 2026-05-14*
-*Last session: 2026-05-15 — Completed Phase 6 (Realtime + Feed) with UAT approval. RealtimeProvider wraps app layout (live sync via router.refresh() on meetings/action_items/activity changes), /feed page with formatted activity, day grouping, relative timestamps.*
-*Stopped at: Phase 7 (Export + Polish) — run /gsd-plan-phase 7*
+*Last session: 2026-05-15 — Completed Phase 7 (Export + Polish) with UAT approval. CSV export at /admin/export (27 columns, ~1904 rows), PWA manifest + teal icons, NotificationProvider with opt-in banner (Chrome requires user gesture), skeleton loading.tsx for all routes, empty states with helpful copy.*
+*Stopped at: Phase 8 (Ship + Verify) — run /gsd-plan-phase 8*
