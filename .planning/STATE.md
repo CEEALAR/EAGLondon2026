@@ -10,9 +10,9 @@ See: `.planning/PROJECT.md` (updated 2026-05-14)
 ## Current Phase
 
 **Phase 6: Realtime + Feed**
-- Status: Not started
+- Status: Pending UAT
 - Goal: Live subscriptions + activity feed + optimistic UI
-- Next action: Run /gsd-plan-phase 6
+- Next action: Browser UAT — check /feed and open app in two tabs to verify live sync
 
 ## Phase History
 
@@ -24,7 +24,7 @@ See: `.planning/PROJECT.md` (updated 2026-05-14)
 | Phase 3: Meetings + Notes | Complete ✓ | 2026-05-15 |
 | Phase 4: Tags + Filters | Complete ✓ | 2026-05-15 |
 | Phase 5: Schedule + Conflicts | Complete ✓ | 2026-05-15 |
-| Phase 6: Realtime + Feed | Not started | — |
+| Phase 6: Realtime + Feed | Pending UAT | — |
 | Phase 7: Export + Polish | Not started | — |
 | Phase 8: Ship + Verify | Not started | — |
 
