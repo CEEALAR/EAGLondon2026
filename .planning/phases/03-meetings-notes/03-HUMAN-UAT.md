@@ -1,5 +1,5 @@
 ---
-status: partial
+status: complete
 phase: 03-meetings-notes
 source: [03-VERIFICATION.md]
 started: 2026-05-15T00:00:00Z
@@ -8,7 +8,7 @@ updated: 2026-05-15T00:00:00Z
 
 ## Current Test
 
-[awaiting human testing — first apply the Supabase migration 0003_meetings.sql]
+Approved by Attila 2026-05-15.
 
 ## Pre-test Setup
 
@@ -55,9 +55,9 @@ result: [pending]
 ## Summary
 
 total: 9
-passed: 0
+passed: 9
 issues: 0
-pending: 9
+pending: 0
 skipped: 0
 blocked: 0
 

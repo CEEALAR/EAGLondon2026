@@ -34,8 +34,7 @@ Nothing — Phase 3 complete (pending UAT), proceeding to Phase 4.
 
 ## Pending User Actions (before Phase 4)
 
-- [ ] Run Supabase migration `ceealar-pulse/supabase/migrations/0003_meetings.sql` in Supabase SQL editor
-- [ ] Complete Phase 3 UAT (03-HUMAN-UAT.md) — 9 browser tests
+Nothing — ready to plan Phase 4.
 
 ## Live URLs
 
@@ -87,5 +86,5 @@ Google OAuth configured in Supabase Auth dashboard (not env vars).
 
 ---
 *State initialized: 2026-05-14*
-*Last session: 2026-05-15 — Completed Phase 3 (Meetings + Notes). Full meeting lifecycle: create dialog, /meetings/[id] detail, notes autosave, action items, status changer, follow-up date picker, activity writes. 9/9 automated checks pass; 9 browser tests pending UAT.*
-*Stopped at: Phase 4 (Tags + Filters) — run /gsd-plan-phase 4 after applying 0003_meetings.sql migration*
+*Last session: 2026-05-15 — Completed Phase 3 (Meetings + Notes) with UAT approval. Full meeting lifecycle: create dialog, /meetings/[id] detail, notes autosave, action items, status changer, follow-up date picker, activity writes. Post-UAT fixes: :00/:30 time slots, 30-min duration hardcoded, delete + edit meeting, search clear button.*
+*Stopped at: Phase 4 (Tags + Filters) — run /gsd-plan-phase 4*
