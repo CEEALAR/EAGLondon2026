@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea'
 interface MeetingNotesFormProps {
   meetingId: string
   isOwner: boolean
+  status: string
   initialValues: {
     prep_note: string | null
     summary: string | null
@@ -51,7 +52,7 @@ function AutosaveTextarea({ label, value: initialValue, onSave }: FieldProps) {
   )
 }
 
-export function MeetingNotesForm({ meetingId, isOwner, initialValues }: MeetingNotesFormProps) {
+export function MeetingNotesForm({ meetingId, isOwner, status, initialValues }: MeetingNotesFormProps) {
   async function save(field: string, value: string) {
     await fetch(`/api/meetings/${meetingId}`, {
       method: 'PATCH',
@@ -62,9 +63,9 @@ export function MeetingNotesForm({ meetingId, isOwner, initialValues }: MeetingN
 
   return (
     <div className="space-y-4">
-      {isOwner && (
+      {(isOwner || status === 'done') && (
         <AutosaveTextarea
-          label="Prep Note (private until meeting is done)"
+          label={isOwner ? 'Prep Note (private until meeting is done)' : 'Prep Note'}
           value={initialValues.prep_note ?? ''}
           onSave={(v) => save('prep_note', v)}
         />

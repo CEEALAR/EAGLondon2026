@@ -134,6 +134,7 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
         <MeetingNotesForm
           meetingId={id}
           isOwner={isOwner}
+          status={meeting.status}
           initialValues={{
             prep_note: meeting.prep_note,
             summary: meeting.summary,
