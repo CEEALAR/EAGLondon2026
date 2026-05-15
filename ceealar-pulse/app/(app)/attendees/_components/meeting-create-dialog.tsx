@@ -8,7 +8,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -81,9 +80,7 @@ export function MeetingCreateDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="default">Schedule Meeting</Button>
-      </DialogTrigger>
+      <Button variant="default" onClick={() => setOpen(true)}>Schedule Meeting</Button>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Schedule Meeting with {attendeeName}</DialogTitle>
@@ -93,7 +90,7 @@ export function MeetingCreateDialog({
           {/* Owner */}
           <div className="space-y-1">
             <label className="text-sm font-medium">Meeting Owner</label>
-            <Select value={ownerId} onValueChange={setOwnerId}>
+            <Select value={ownerId} onValueChange={(v) => { if (v) setOwnerId(v) }}>
               <SelectTrigger>
                 <SelectValue placeholder="Select owner" />
               </SelectTrigger>
