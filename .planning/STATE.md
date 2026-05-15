@@ -9,10 +9,10 @@ See: `.planning/PROJECT.md` (updated 2026-05-14)
 
 ## Current Phase
 
-**Phase 5: Schedule + Conflicts**
-- Status: Pending UAT
-- Goal: Calendar/schedule view, conflict detection, session awareness
-- Next action: Browser UAT on /meetings schedule view and conflict banners
+**Phase 6: Realtime + Feed**
+- Status: Not started
+- Goal: Live subscriptions + activity feed + optimistic UI
+- Next action: Run /gsd-plan-phase 6
 
 ## Phase History
 
@@ -23,7 +23,7 @@ See: `.planning/PROJECT.md` (updated 2026-05-14)
 | Phase 2: Attendees | Complete ✓ | 2026-05-15 |
 | Phase 3: Meetings + Notes | Complete ✓ | 2026-05-15 |
 | Phase 4: Tags + Filters | Complete ✓ | 2026-05-15 |
-| Phase 5: Schedule + Conflicts | Pending UAT | — |
+| Phase 5: Schedule + Conflicts | Complete ✓ | 2026-05-15 |
 | Phase 6: Realtime + Feed | Not started | — |
 | Phase 7: Export + Polish | Not started | — |
 | Phase 8: Ship + Verify | Not started | — |
@@ -86,5 +86,5 @@ Google OAuth configured in Supabase Auth dashboard (not env vars).
 
 ---
 *State initialized: 2026-05-14*
-*Last session: 2026-05-15 — Completed Phase 4 (Tags + Filters) with UAT approval. Tag chips on attendee detail with AddTagPopover (search + create + 8-swatch color picker), multi-tag AND filter on /attendees, /me/tags management page.*
-*Stopped at: Phase 5 (Schedule + Conflicts) — run /gsd-plan-phase 5*
+*Last session: 2026-05-15 — Completed Phase 5 (Schedule + Conflicts) with UAT approval. 3-day timeline on /meetings (day tabs, hourly grid, member lanes, status colors), soft conflict banners on attendee detail and meeting create dialog.*
+*Stopped at: Phase 6 (Realtime + Feed) — run /gsd-plan-phase 6*
