@@ -25,6 +25,7 @@ interface MeetingCreateDialogProps {
   attendeeName: string
   currentUserId: string
   teamMembers: TeamMember[]
+  wantToMeetOwners: string[]
 }
 
 export function MeetingCreateDialog({
@@ -32,6 +33,7 @@ export function MeetingCreateDialog({
   attendeeName,
   currentUserId,
   teamMembers,
+  wantToMeetOwners,
 }: MeetingCreateDialogProps) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
@@ -87,6 +89,16 @@ export function MeetingCreateDialog({
         </DialogHeader>
 
         <div className="space-y-4 pt-2">
+          {/* SCHED-05: warn if another team member wants to meet this person */}
+          {wantToMeetOwners.length > 0 && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 flex items-start gap-2">
+              <span className="text-amber-500 text-sm">⚠</span>
+              <p className="text-xs text-amber-800">
+                {wantToMeetOwners.join(', ')}{' '}
+                {wantToMeetOwners.length === 1 ? 'wants' : 'want'} to meet this person too.
+              </p>
+            </div>
+          )}
           {/* Owner — native select avoids shadcn value-display bug */}
           <div className="space-y-1">
             <label className="text-sm font-medium">Meeting Owner</label>

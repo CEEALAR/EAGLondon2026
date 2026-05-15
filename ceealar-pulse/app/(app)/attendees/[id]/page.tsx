@@ -76,12 +76,40 @@ export default async function AttendeeDetailPage(props: { params: Promise<{ id: 
   const teamMembers: TeamMember[] = (teamMembersRaw ?? []) as TeamMember[]
   const meetings: MeetingRow[] = (meetingsRaw ?? []) as unknown as MeetingRow[]
 
+  // Soft conflict detection (SCHED-04 + SCHED-05)
+  const otherMemberNames = [
+    ...new Set(
+      meetings
+        .filter((m) => m.owner_id && m.owner_id !== user?.id)
+        .map((m) => m.team_members?.display_name ?? 'Someone')
+    ),
+  ]
+
+  const wantToMeetOwners = [
+    ...new Set(
+      meetings
+        .filter((m) => m.status === 'want_to_meet' && m.owner_id !== user?.id)
+        .map((m) => m.team_members?.display_name ?? 'Someone')
+    ),
+  ]
+
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 space-y-8">
       {/* Back navigation */}
       <Link href="/attendees" className="text-sm text-muted-foreground">
         ← Back to attendees
       </Link>
+
+      {/* Soft conflict banner (SCHED-04) */}
+      {otherMemberNames.length > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 flex items-start gap-2">
+          <span className="text-amber-500 text-sm mt-0.5">⚠</span>
+          <p className="text-sm text-amber-800">
+            {otherMemberNames.join(', ')}{' '}
+            {otherMemberNames.length === 1 ? 'also has' : 'also have'} a meeting with this person.
+          </p>
+        </div>
+      )}
 
       {/* Section 1 — Header */}
       <div className="space-y-1">
@@ -97,6 +125,7 @@ export default async function AttendeeDetailPage(props: { params: Promise<{ id: 
               attendeeName={fullName}
               currentUserId={user.id}
               teamMembers={teamMembers}
+              wantToMeetOwners={wantToMeetOwners}
             />
           )}
         </div>
