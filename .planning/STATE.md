@@ -9,10 +9,10 @@ See: `.planning/PROJECT.md` (updated 2026-05-14)
 
 ## Current Phase
 
-**Phase 6: Realtime + Feed**
-- Status: Pending UAT
-- Goal: Live subscriptions + activity feed + optimistic UI
-- Next action: Browser UAT — check /feed and open app in two tabs to verify live sync
+**Phase 7: Export + Polish**
+- Status: Not started
+- Goal: CSV export, PWA, browser notifications, skeleton states, empty states
+- Next action: Run /gsd-plan-phase 7
 
 ## Phase History
 
@@ -24,7 +24,7 @@ See: `.planning/PROJECT.md` (updated 2026-05-14)
 | Phase 3: Meetings + Notes | Complete ✓ | 2026-05-15 |
 | Phase 4: Tags + Filters | Complete ✓ | 2026-05-15 |
 | Phase 5: Schedule + Conflicts | Complete ✓ | 2026-05-15 |
-| Phase 6: Realtime + Feed | Pending UAT | — |
+| Phase 6: Realtime + Feed | Complete ✓ | 2026-05-15 |
 | Phase 7: Export + Polish | Not started | — |
 | Phase 8: Ship + Verify | Not started | — |
 
@@ -86,5 +86,5 @@ Google OAuth configured in Supabase Auth dashboard (not env vars).
 
 ---
 *State initialized: 2026-05-14*
-*Last session: 2026-05-15 — Completed Phase 5 (Schedule + Conflicts) with UAT approval. 3-day timeline on /meetings (day tabs, hourly grid, member lanes, status colors), soft conflict banners on attendee detail and meeting create dialog.*
-*Stopped at: Phase 6 (Realtime + Feed) — run /gsd-plan-phase 6*
+*Last session: 2026-05-15 — Completed Phase 6 (Realtime + Feed) with UAT approval. RealtimeProvider wraps app layout (live sync via router.refresh() on meetings/action_items/activity changes), /feed page with formatted activity, day grouping, relative timestamps.*
+*Stopped at: Phase 7 (Export + Polish) — run /gsd-plan-phase 7*
