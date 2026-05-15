@@ -10,9 +10,9 @@ See: `.planning/PROJECT.md` (updated 2026-05-14)
 ## Current Phase
 
 **Phase 7: Export + Polish**
-- Status: Not started
+- Status: Ready to execute (3 plans, 1 wave)
 - Goal: CSV export, PWA, browser notifications, skeleton states, empty states
-- Next action: Run /gsd-plan-phase 7
+- Next action: Run /gsd-execute-phase 7
 
 ## Phase History
 
