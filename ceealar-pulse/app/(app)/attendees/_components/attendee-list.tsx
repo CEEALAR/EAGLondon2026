@@ -2,21 +2,25 @@
 
 import React, { useRef, useState, useMemo, useEffect } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { Attendee } from '@/lib/types'
+import { Attendee, Tag } from '@/lib/types'
 import { AttendeeRow } from './attendee-row'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { SlidersHorizontal, X } from 'lucide-react'
 
 interface AttendeeListProps {
   attendees: Attendee[]
+  allTags: Tag[]
 }
 
-export function AttendeeList({ attendees }: AttendeeListProps) {
+export function AttendeeList({ attendees, allTags }: AttendeeListProps) {
   const [query, setQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [filterOpen, setFilterOpen] = useState(false)
+  const [selectedTagIds, setSelectedTagIds] = useState<Set<string>>(new Set())
+  const [activeTagIds, setActiveTagIds] = useState<Set<string>>(new Set())
 
   // Debounce search query by 200ms
   useEffect(() => {
@@ -26,16 +30,25 @@ export function AttendeeList({ attendees }: AttendeeListProps) {
     return () => clearTimeout(timeout)
   }, [query])
 
-  // Filter attendees by name or company
+  // Filter attendees by name/company and active tag filter
   const filtered = useMemo(() => {
-    if (!debouncedQuery) return attendees
-    const q = debouncedQuery.toLowerCase()
-    return attendees.filter((a) =>
-      [a.first_name, a.last_name, a.company].some((f) =>
-        f?.toLowerCase().includes(q)
+    let result = attendees
+    if (debouncedQuery) {
+      const q = debouncedQuery.toLowerCase()
+      result = result.filter((a) =>
+        [a.first_name, a.last_name, a.company].some((f) =>
+          f?.toLowerCase().includes(q)
+        )
       )
-    )
-  }, [attendees, debouncedQuery])
+    }
+    if (activeTagIds.size > 0) {
+      result = result.filter((a) => {
+        const attendeeTags = new Set((a.attendee_tags ?? []).map((at) => at.tag_id))
+        return [...activeTagIds].every((id) => attendeeTags.has(id))
+      })
+    }
+    return result
+  }, [attendees, debouncedQuery, activeTagIds])
 
   // TanStack Virtual setup
   const parentRef = useRef<HTMLDivElement>(null)
@@ -68,12 +81,18 @@ export function AttendeeList({ attendees }: AttendeeListProps) {
           )}
         </div>
         <Button
-          variant="outline"
+          variant={activeTagIds.size > 0 ? 'default' : 'outline'}
           size="icon"
           onClick={() => setFilterOpen(true)}
           aria-label="Filters"
+          className="relative"
         >
           <SlidersHorizontal size={16} />
+          {activeTagIds.size > 0 && (
+            <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] rounded-full w-4 h-4 flex items-center justify-center leading-none">
+              {activeTagIds.size}
+            </span>
+          )}
         </Button>
       </div>
 
@@ -110,22 +129,66 @@ export function AttendeeList({ attendees }: AttendeeListProps) {
         )}
       </div>
 
-      {/* Filter Sheet stub */}
-      <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
+      {/* Filter Sheet */}
+      <Sheet
+        open={filterOpen}
+        onOpenChange={(open) => {
+          if (open) setSelectedTagIds(new Set(activeTagIds))
+          setFilterOpen(open)
+        }}
+      >
         <SheetContent side="bottom">
           <SheetHeader>
-            <SheetTitle>Filters</SheetTitle>
+            <SheetTitle>Filter by Tags</SheetTitle>
           </SheetHeader>
-          <p className="text-muted-foreground mt-4">
-            Tag, expertise, interest, and country filters coming in Phase 4.
-          </p>
-          <Button
-            variant="outline"
-            onClick={() => setFilterOpen(false)}
-            className="mt-4 w-full"
-          >
-            Close
-          </Button>
+          <div className="max-h-64 overflow-y-auto space-y-1 mt-3">
+            {allTags.length === 0 && (
+              <p className="text-sm text-muted-foreground">No tags yet — create them from an attendee&apos;s page.</p>
+            )}
+            {allTags.map((tag) => (
+              <label key={tag.id} className="flex items-center gap-2 cursor-pointer py-1.5">
+                <Checkbox
+                  checked={selectedTagIds.has(tag.id)}
+                  onCheckedChange={(checked) => {
+                    setSelectedTagIds((prev) => {
+                      const next = new Set(prev)
+                      if (checked) next.add(tag.id)
+                      else next.delete(tag.id)
+                      return next
+                    })
+                  }}
+                />
+                <span
+                  className="inline-block w-3 h-3 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: tag.color }}
+                />
+                <span className="text-sm">{tag.name}</span>
+              </label>
+            ))}
+          </div>
+          <div className="mt-4 flex gap-2">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => {
+                setSelectedTagIds(new Set())
+                setActiveTagIds(new Set())
+                setFilterOpen(false)
+              }}
+            >
+              Clear
+            </Button>
+            <Button
+              variant="default"
+              className="flex-1"
+              onClick={() => {
+                setActiveTagIds(selectedTagIds)
+                setFilterOpen(false)
+              }}
+            >
+              Apply
+            </Button>
+          </div>
         </SheetContent>
       </Sheet>
     </div>

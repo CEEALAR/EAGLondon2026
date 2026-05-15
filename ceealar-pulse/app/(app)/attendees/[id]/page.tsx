@@ -6,6 +6,8 @@ import { createClient } from '@/lib/supabase/server'
 import { StrategicContextForm } from '@/app/(app)/attendees/_components/strategic-context-form'
 import { MeetingCreateDialog } from '@/app/(app)/attendees/_components/meeting-create-dialog'
 import type { TeamMember, MeetingStatus } from '@/lib/types'
+import { AttendeeTagsSection } from './_components/attendee-tags-section'
+import type { Tag } from '@/lib/types'
 
 type MeetingRow = {
   id: string
@@ -47,7 +49,7 @@ export default async function AttendeeDetailPage(props: { params: Promise<{ id: 
     { data: teamMembersRaw },
     { data: meetingsRaw },
   ] = await Promise.all([
-    supabase.from('attendees').select('*').eq('id', id).single(),
+    supabase.from('attendees').select('*, attendee_tags(tag_id)').eq('id', id).single(),
     supabase.from('team_members').select('*').order('display_name'),
     supabase
       .from('meetings')
@@ -59,6 +61,11 @@ export default async function AttendeeDetailPage(props: { params: Promise<{ id: 
   if (!attendee) {
     notFound()
   }
+
+  const { data: allTagsData } = await supabase.from('tags').select('*').order('name')
+  const allTags: Tag[] = allTagsData ?? []
+  const assignedTagIds = new Set((attendee.attendee_tags ?? []).map((at: { tag_id: string }) => at.tag_id))
+  const assignedTags: Tag[] = allTags.filter(t => assignedTagIds.has(t.id))
 
   const fullName =
     [attendee.first_name, attendee.last_name].filter(Boolean).join(' ') ||
@@ -183,11 +190,10 @@ export default async function AttendeeDetailPage(props: { params: Promise<{ id: 
         />
       </div>
 
-      {/* Section 4 — Tags (stub) */}
+      {/* Section 4 — Tags */}
       <div className="border rounded-lg p-4 bg-card">
         <h2 className="text-lg font-semibold mb-2">Tags</h2>
-        <p className="text-sm text-muted-foreground">Tag management coming in Phase 4.</p>
-        {/* Phase 4: tag chips with add/remove */}
+        <AttendeeTagsSection attendeeId={attendee.id} initialTags={assignedTags} />
       </div>
 
       {/* Section 5 — Team Meetings */}
