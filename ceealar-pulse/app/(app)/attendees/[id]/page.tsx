@@ -1,18 +1,60 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ExternalLink } from 'lucide-react'
+import { format, parseISO } from 'date-fns'
 import { createClient } from '@/lib/supabase/server'
-import { Button } from '@/components/ui/button'
 import { StrategicContextForm } from '@/app/(app)/attendees/_components/strategic-context-form'
+import { MeetingCreateDialog } from '@/app/(app)/attendees/_components/meeting-create-dialog'
+import type { TeamMember, MeetingStatus } from '@/lib/types'
+
+type MeetingRow = {
+  id: string
+  status: MeetingStatus
+  scheduled_at: string | null
+  location: string | null
+  owner_id: string | null
+  team_members: { display_name: string | null } | null
+}
+
+function statusLabel(s: MeetingStatus) {
+  const map: Record<MeetingStatus, string> = {
+    want_to_meet: 'Want to Meet',
+    planned: 'Planned',
+    done: 'Done',
+    no_show: 'No Show',
+    cancelled: 'Cancelled',
+  }
+  return map[s] ?? s
+}
+
+function statusClass(s: MeetingStatus) {
+  switch (s) {
+    case 'want_to_meet': return 'bg-gray-100 text-gray-700'
+    case 'planned':      return 'bg-teal-100 text-teal-800'
+    case 'done':         return 'bg-yellow-100 text-yellow-800'
+    default:             return 'bg-gray-100 text-gray-500'
+  }
+}
 
 export default async function AttendeeDetailPage(props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params
   const supabase = await createClient()
-  const { data: attendee } = await supabase
-    .from('attendees')
-    .select('*')
-    .eq('id', id)
-    .single()
+
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const [
+    { data: attendee },
+    { data: teamMembersRaw },
+    { data: meetingsRaw },
+  ] = await Promise.all([
+    supabase.from('attendees').select('*').eq('id', id).single(),
+    supabase.from('team_members').select('*').order('display_name'),
+    supabase
+      .from('meetings')
+      .select('id, status, scheduled_at, location, owner_id, team_members(display_name)')
+      .eq('attendee_id', id)
+      .order('created_at', { ascending: false }),
+  ])
 
   if (!attendee) {
     notFound()
@@ -23,6 +65,9 @@ export default async function AttendeeDetailPage(props: { params: Promise<{ id: 
     attendee.swapcard_url
 
   const subtitle = [attendee.company, attendee.job_title].filter(Boolean).join(' · ')
+
+  const teamMembers: TeamMember[] = (teamMembersRaw ?? []) as TeamMember[]
+  const meetings: MeetingRow[] = (meetingsRaw ?? []) as unknown as MeetingRow[]
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 space-y-8">
@@ -39,10 +84,14 @@ export default async function AttendeeDetailPage(props: { params: Promise<{ id: 
           <p className="text-sm text-muted-foreground">{attendee.career_stage}</p>
         )}
         <div className="pt-2">
-          {/* Phase 3: opens meeting create dialog */}
-          <Button variant="default" disabled>
-            Schedule Meeting
-          </Button>
+          {user && (
+            <MeetingCreateDialog
+              attendeeId={attendee.id}
+              attendeeName={fullName}
+              currentUserId={user.id}
+              teamMembers={teamMembers}
+            />
+          )}
         </div>
       </div>
 
@@ -141,11 +190,44 @@ export default async function AttendeeDetailPage(props: { params: Promise<{ id: 
         {/* Phase 4: tag chips with add/remove */}
       </div>
 
-      {/* Section 5 — Team Meetings (stub) */}
+      {/* Section 5 — Team Meetings */}
       <div className="border rounded-lg p-4 bg-card">
-        <h2 className="text-lg font-semibold mb-2">Team Meetings</h2>
-        <p className="text-sm text-muted-foreground">Meeting history coming in Phase 3.</p>
-        {/* Phase 3: list of meetings with this attendee */}
+        <h2 className="text-lg font-semibold mb-3">Team Meetings</h2>
+        {meetings.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No meetings yet — tap &quot;Schedule Meeting&quot; above to create one.
+          </p>
+        ) : (
+          <ul className="space-y-2">
+            {meetings.map((m) => (
+              <li key={m.id}>
+                <Link
+                  href={`/meetings/${m.id}`}
+                  className="block border rounded-lg p-3 hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span
+                      className={`text-xs font-medium px-2 py-0.5 rounded-full ${statusClass(m.status)}`}
+                    >
+                      {statusLabel(m.status)}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {m.team_members?.display_name ?? 'Unknown'}
+                    </span>
+                  </div>
+                  {m.scheduled_at && (
+                    <p className="text-sm mt-1">
+                      {format(parseISO(m.scheduled_at), "EEE d MMM yyyy 'at' HH:mm")}
+                    </p>
+                  )}
+                  {m.location && (
+                    <p className="text-xs text-muted-foreground mt-0.5">{m.location}</p>
+                  )}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   )

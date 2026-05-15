@@ -1,0 +1,143 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import type { MeetingStatus } from '@/lib/types'
+
+interface StatusChangerProps {
+  meetingId: string
+  currentStatus: MeetingStatus
+  isOwner: boolean
+}
+
+const STATUS_LABELS: Record<MeetingStatus, string> = {
+  want_to_meet: 'Want to Meet',
+  planned:      'Planned',
+  done:         'Done',
+  no_show:      'No Show',
+  cancelled:    'Cancelled',
+}
+
+const STATUS_CLASSES: Record<MeetingStatus, string> = {
+  want_to_meet: 'bg-gray-100 text-gray-700',
+  planned:      'bg-teal-100 text-teal-800',
+  done:         'bg-yellow-100 text-yellow-800',
+  no_show:      'bg-gray-200 text-gray-500',
+  cancelled:    'bg-gray-200 text-gray-500',
+}
+
+export function StatusChanger({ meetingId, currentStatus, isOwner }: StatusChangerProps) {
+  const router = useRouter()
+  const [saving, setSaving] = useState(false)
+
+  async function changeStatus(newStatus: MeetingStatus) {
+    // Confirm destructive state changes
+    if (['done', 'no_show', 'cancelled'].includes(newStatus)) {
+      const label = STATUS_LABELS[newStatus]
+      const confirmed = window.confirm(
+        `Are you sure you want to mark this meeting as "${label}"? This cannot be undone.`
+      )
+      if (!confirmed) return
+    }
+
+    setSaving(true)
+    try {
+      const res = await fetch(`/api/meetings/${meetingId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      })
+      if (res.ok) {
+        router.refresh()
+      }
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const statusBadge = (
+    <span
+      className={`inline-block text-sm font-medium px-3 py-1 rounded-full ${STATUS_CLASSES[currentStatus]}`}
+    >
+      {STATUS_LABELS[currentStatus]}
+    </span>
+  )
+
+  if (!isOwner) {
+    return <div>{statusBadge}</div>
+  }
+
+  // Owner-only action buttons based on current state
+  const actionButtons: React.ReactNode[] = []
+
+  if (currentStatus === 'want_to_meet') {
+    actionButtons.push(
+      <Button
+        key="plan"
+        size="sm"
+        variant="outline"
+        disabled={saving}
+        onClick={() => changeStatus('planned')}
+      >
+        Mark as Planned
+      </Button>
+    )
+  }
+
+  if (currentStatus === 'planned') {
+    actionButtons.push(
+      <Button
+        key="done"
+        size="sm"
+        variant="default"
+        disabled={saving}
+        onClick={() => changeStatus('done')}
+      >
+        Mark as Done
+      </Button>,
+      <Button
+        key="noshow"
+        size="sm"
+        variant="outline"
+        disabled={saving}
+        onClick={() => changeStatus('no_show')}
+      >
+        No Show
+      </Button>,
+      <Button
+        key="cancel"
+        size="sm"
+        variant="outline"
+        disabled={saving}
+        onClick={() => changeStatus('cancelled')}
+      >
+        Cancel Meeting
+      </Button>
+    )
+  }
+
+  if (currentStatus === 'want_to_meet' || currentStatus === 'planned') {
+    // Allow marking as done from want_to_meet too (impromptu meeting)
+    if (currentStatus === 'want_to_meet') {
+      actionButtons.push(
+        <Button
+          key="done-direct"
+          size="sm"
+          variant="default"
+          disabled={saving}
+          onClick={() => changeStatus('done')}
+        >
+          Mark as Done
+        </Button>
+      )
+    }
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      {statusBadge}
+      {actionButtons}
+    </div>
+  )
+}
