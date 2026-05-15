@@ -145,17 +145,17 @@
 | ATT-05 | Phase 2 | Complete ✓ |
 | ATT-06 | Phase 2 | Complete ✓ |
 | ATT-07 | Phase 4 | Pending |
-| ATT-08 | Phase 3 | Pending |
+| ATT-08 | Phase 3 | Complete ✓ |
 | ATT-09 | Phase 2 | Complete ✓ |
-| MEET-01 | Phase 3 | Pending |
-| MEET-02 | Phase 3 | Pending |
-| MEET-03 | Phase 3 | Pending |
-| MEET-04 | Phase 3 | Pending |
-| MEET-05 | Phase 3 | Pending |
-| MEET-06 | Phase 3 | Pending |
-| MEET-07 | Phase 3 | Pending |
-| MEET-08 | Phase 3 | Pending |
-| MEET-09 | Phase 3 | Pending |
+| MEET-01 | Phase 3 | Complete ✓ |
+| MEET-02 | Phase 3 | Complete ✓ |
+| MEET-03 | Phase 3 | Complete ✓ |
+| MEET-04 | Phase 3 | Complete ✓ |
+| MEET-05 | Phase 3 | Complete ✓ |
+| MEET-06 | Phase 3 | Complete ✓ |
+| MEET-07 | Phase 3 | Complete ✓ |
+| MEET-08 | Phase 3 | Complete ✓ |
+| MEET-09 | Phase 3 | Complete ✓ |
 | TAG-01 | Phase 4 | Pending |
 | TAG-02 | Phase 4 | Pending |
 | TAG-03 | Phase 4 | Pending |
