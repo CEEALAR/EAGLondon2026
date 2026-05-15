@@ -7,7 +7,7 @@ import { AttendeeRow } from './attendee-row'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
-import { SlidersHorizontal } from 'lucide-react'
+import { SlidersHorizontal, X } from 'lucide-react'
 
 interface AttendeeListProps {
   attendees: Attendee[]
@@ -50,12 +50,23 @@ export function AttendeeList({ attendees }: AttendeeListProps) {
     <div className="flex flex-col h-[calc(100vh-56px-64px)] md:h-[calc(100vh-56px)]">
       {/* Search bar row */}
       <div className="flex gap-2 px-4 py-2 sticky top-0 bg-background z-10 border-b border-border shrink-0">
-        <Input
-          placeholder="Search by name or company..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="flex-1"
-        />
+        <div className="relative flex-1">
+          <Input
+            placeholder="Search by name or company..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="pr-8"
+          />
+          {query && (
+            <button
+              onClick={() => setQuery('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              aria-label="Clear search"
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
         <Button
           variant="outline"
           size="icon"

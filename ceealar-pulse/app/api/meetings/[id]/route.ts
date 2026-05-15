@@ -93,3 +93,34 @@ export async function PATCH(
 
   return NextResponse.json(updated)
 }
+
+export async function DELETE(
+  _req: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  const { id } = await context.params
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { data: current } = await supabase
+    .from('meetings')
+    .select('owner_id')
+    .eq('id', id)
+    .single()
+
+  if (!current) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (current.owner_id !== user.id) {
+    return NextResponse.json({ error: 'Only the meeting owner can delete it' }, { status: 403 })
+  }
+
+  const admin = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
+  const { error } = await admin.from('meetings').delete().eq('id', id)
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  return new NextResponse(null, { status: 204 })
+}

@@ -39,7 +39,6 @@ export function MeetingCreateDialog({
   const [ownerId, setOwnerId] = useState(currentUserId)
   const [status, setStatus] = useState<MeetingStatus>('want_to_meet')
   const [scheduledAt, setScheduledAt] = useState('')
-  const [durationMinutes, setDurationMinutes] = useState('')
   const [location, setLocation] = useState('')
 
   const showTimeFields = status === 'planned'
@@ -56,8 +55,7 @@ export function MeetingCreateDialog({
           owner_id: ownerId,
           status: finalStatus,
           scheduled_at: showTimeFields && scheduledAt ? scheduledAt : null,
-          duration_minutes:
-            showTimeFields && durationMinutes ? parseInt(durationMinutes, 10) : null,
+          duration_minutes: showTimeFields && scheduledAt ? 30 : null,
           location: location || null,
         }),
       })
@@ -78,6 +76,8 @@ export function MeetingCreateDialog({
     }
   }
 
+  const selectedOwner = teamMembers.find(m => m.id === ownerId)
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <Button variant="default" onClick={() => setOpen(true)}>Schedule Meeting</Button>
@@ -87,22 +87,20 @@ export function MeetingCreateDialog({
         </DialogHeader>
 
         <div className="space-y-4 pt-2">
-          {/* Owner */}
+          {/* Owner — native select avoids shadcn value-display bug */}
           <div className="space-y-1">
             <label className="text-sm font-medium">Meeting Owner</label>
-            <Select value={ownerId} onValueChange={(v) => { if (v) setOwnerId(v) }}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select owner" />
-              </SelectTrigger>
-              <SelectContent>
-                {teamMembers.map((m) => (
-                  <SelectItem key={m.id} value={m.id}>
-                    {m.display_name ?? m.email}
-                    {m.id === currentUserId ? ' (you)' : ''}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <select
+              value={ownerId}
+              onChange={(e) => setOwnerId(e.target.value)}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            >
+              {teamMembers.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.display_name ?? m.email}{m.id === currentUserId ? ' (you)' : ''}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Status */}
@@ -122,28 +120,18 @@ export function MeetingCreateDialog({
             </Select>
           </div>
 
-          {/* Date + time — only when planned */}
+          {/* Date + time — :00 and :30 only */}
           {showTimeFields && (
-            <>
-              <div className="space-y-1">
-                <label className="text-sm font-medium">Date &amp; Time</label>
-                <Input
-                  type="datetime-local"
-                  value={scheduledAt}
-                  onChange={(e) => setScheduledAt(e.target.value)}
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-sm font-medium">Duration (minutes)</label>
-                <Input
-                  type="number"
-                  placeholder="30"
-                  min={1}
-                  value={durationMinutes}
-                  onChange={(e) => setDurationMinutes(e.target.value)}
-                />
-              </div>
-            </>
+            <div className="space-y-1">
+              <label className="text-sm font-medium">Date &amp; Time</label>
+              <Input
+                type="datetime-local"
+                step={1800}
+                value={scheduledAt}
+                onChange={(e) => setScheduledAt(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">All meetings are 30 minutes.</p>
+            </div>
           )}
 
           {/* Location */}

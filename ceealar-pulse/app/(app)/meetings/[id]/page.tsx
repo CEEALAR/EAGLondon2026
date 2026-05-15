@@ -6,7 +6,9 @@ import { MeetingNotesForm } from './_components/meeting-notes-form'
 import { ActionItemsSection } from './_components/action-items-section'
 import { StatusChanger } from './_components/status-changer'
 import { FollowUpDate } from './_components/follow-up-date'
-import type { ActionItem, MeetingStatus } from '@/lib/types'
+import { DeleteMeetingButton } from './_components/delete-meeting-button'
+import { EditMeetingButton } from './_components/edit-meeting-button'
+import type { ActionItem, MeetingStatus, TeamMember } from '@/lib/types'
 
 type MeetingRow = {
   id: string
@@ -46,6 +48,7 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
   const [
     { data: meetingRaw },
     { data: actionItemsRaw },
+    { data: teamMembersRaw },
   ] = await Promise.all([
     supabase
       .from('meetings_view')
@@ -61,12 +64,16 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
       .select('*')
       .eq('meeting_id', id)
       .order('created_at', { ascending: true }),
+    supabase
+      .from('team_members')
+      .select('id, display_name, email'),
   ])
 
   if (!meetingRaw) notFound()
 
   const meeting = meetingRaw as unknown as MeetingRow
   const actionItems: ActionItem[] = (actionItemsRaw ?? []) as ActionItem[]
+  const teamMembers: TeamMember[] = (teamMembersRaw ?? []) as TeamMember[]
 
   const attendeeName =
     [meeting.attendees?.first_name, meeting.attendees?.last_name].filter(Boolean).join(' ') ||
@@ -89,14 +96,29 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
 
       {/* Section 1 — Header */}
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold">
-          <Link
-            href={`/attendees/${meeting.attendee_id}`}
-            className="hover:underline underline-offset-4"
-          >
-            {attendeeName}
-          </Link>
-        </h1>
+        <div className="flex items-start justify-between gap-2">
+          <h1 className="text-2xl font-bold">
+            <Link
+              href={`/attendees/${meeting.attendee_id}`}
+              className="hover:underline underline-offset-4"
+            >
+              {attendeeName}
+            </Link>
+          </h1>
+          {isOwner && (
+            <div className="flex gap-1 shrink-0 pt-1">
+              <EditMeetingButton
+                meetingId={id}
+                currentOwnerId={meeting.owner_id}
+                currentScheduledAt={meeting.scheduled_at}
+                currentLocation={meeting.location}
+                currentUserId={user.id}
+                teamMembers={teamMembers}
+              />
+              <DeleteMeetingButton meetingId={id} attendeeId={meeting.attendee_id} />
+            </div>
+          )}
+        </div>
         <p className="text-sm text-muted-foreground">Meeting owned by {ownerName}</p>
 
         {meeting.scheduled_at && (
