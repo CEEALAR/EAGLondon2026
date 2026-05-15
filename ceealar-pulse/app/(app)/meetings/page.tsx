@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import type { MeetingStatus, TeamMember } from '@/lib/types'
 import { MeetingsTimeline, type TimelineMeeting } from './_components/meetings-timeline'
@@ -44,7 +45,22 @@ export default async function MeetingsPage() {
   return (
     <div className="px-3 py-4">
       <h1 className="text-xl font-semibold mb-4 text-foreground">Schedule</h1>
-      <MeetingsTimeline meetings={meetings} teamMembers={teamMembers} />
+      {meetings.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
+          <p className="text-base font-medium text-foreground">No meetings yet</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Find someone in Attendees and tap &lsquo;Schedule meeting&rsquo; to add one.
+          </p>
+          <Link
+            href="/attendees"
+            className="text-[var(--color-teal)] underline underline-offset-2 text-sm mt-2"
+          >
+            Browse Attendees
+          </Link>
+        </div>
+      ) : (
+        <MeetingsTimeline meetings={meetings} teamMembers={teamMembers} />
+      )}
     </div>
   )
 }
