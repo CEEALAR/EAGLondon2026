@@ -19,7 +19,7 @@ async function getStats() {
     { count: teamMembers },
   ] = await Promise.all([
     admin.from('attendees').select('*', { count: 'exact', head: true }),
-    admin.from('meetings').select('*', { count: 'exact', head: true }).not('status', 'in', '(cancelled,no_show)'),
+    admin.from('meetings').select('*', { count: 'exact', head: true }).in('status', ['want_to_meet', 'planned', 'done']),
     admin.from('meetings').select('*', { count: 'exact', head: true }).eq('status', 'done'),
     admin.from('action_items').select('*', { count: 'exact', head: true }),
     admin.from('action_items').select('*', { count: 'exact', head: true }).eq('done', true),
