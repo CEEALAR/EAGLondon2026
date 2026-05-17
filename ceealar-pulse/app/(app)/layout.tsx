@@ -4,6 +4,7 @@ import { BottomTabBar } from '@/components/nav/bottom-tab-bar'
 import { TopNav } from '@/components/nav/top-nav'
 import { RealtimeProvider } from '@/components/realtime-provider'
 import { NotificationProvider } from '@/components/notification-provider'
+import { CalendarAutoSync } from '@/components/calendar-auto-sync'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -31,6 +32,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <TopNav user={userForNav} />
       <main className="md:pt-14 pb-16 md:pb-0">
         <NotificationProvider><RealtimeProvider>{children}</RealtimeProvider></NotificationProvider>
+        <CalendarAutoSync />
       </main>
       <BottomTabBar />
     </div>

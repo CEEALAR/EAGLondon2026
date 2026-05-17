@@ -65,8 +65,8 @@ export function CalendarSection({ initialCalendar }: Props) {
         return
       }
       toast.success('Calendar connected — syncing now…')
-      // Trigger first sync immediately
-      await fetch('/api/me/calendar/sync', { method: 'POST' })
+      // Trigger first sync immediately (force bypasses throttle for new connections)
+      await fetch('/api/me/calendar/sync?force=1', { method: 'POST' })
       router.refresh()
     } finally {
       setBusy(null)
@@ -76,7 +76,7 @@ export function CalendarSection({ initialCalendar }: Props) {
   async function handleSync() {
     setBusy('sync')
     try {
-      const res = await fetch('/api/me/calendar/sync', { method: 'POST' })
+      const res = await fetch('/api/me/calendar/sync?force=1', { method: 'POST' })
       const data = await res.json()
       if (!res.ok) {
         toast.error(data.error ?? 'Sync failed')
