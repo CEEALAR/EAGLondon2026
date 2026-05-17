@@ -4,7 +4,6 @@ import React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Attendee } from '@/lib/types'
-import { Badge } from '@/components/ui/badge'
 import { PriorityBadge } from '@/components/priority-badge'
 
 interface AttendeeRowProps {
@@ -88,21 +87,6 @@ export function AttendeeRow({ attendee, style }: AttendeeRowProps) {
             <p className="text-xs text-muted-foreground truncate mt-0.5">{companyJob}</p>
           )}
         </div>
-
-        {/* Expertise chips on desktop only */}
-        {attendee.expertise && attendee.expertise.length > 0 && (
-          <div className="hidden sm:flex gap-1 shrink-0">
-            {attendee.expertise.slice(0, 2).map((exp) => (
-              <Badge
-                key={exp}
-                variant="secondary"
-                className="text-[11px] font-medium px-2 py-0.5 bg-muted/60 text-muted-foreground border-0"
-              >
-                {exp}
-              </Badge>
-            ))}
-          </div>
-        )}
 
         {/* Subtle chevron hint on hover (desktop) */}
         <span
