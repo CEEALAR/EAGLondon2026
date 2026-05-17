@@ -2,8 +2,8 @@
 
 **Milestone:** v1.0 — EAG London 2026
 **Target:** 28 May 2026 (14 days from 2026-05-14)
-**Phases:** 9 (Phase 0–8)
-**Requirements:** 57 v1 requirements, 100% coverage ✓
+**Phases:** 10 (Phase 0–9)
+**Requirements:** 57 v1 requirements (100% coverage ✓) + 10 CAL requirements for Phase 9
 
 ## Overview
 
@@ -18,6 +18,7 @@
 | 6 | Realtime + Feed | Live subscriptions + activity feed + optimistic UI | RT-01–05 | 45 min |
 | 7 | Export + Polish | CSV export + PWA + notifications + skeleton/empty states | EXP-01–05 | 1 hr |
 | 8 | Ship + Verify | Smoke test on real phones, README, production sign-off | SHIP-01–04 | 30 min |
+| 9 | Calendar Integration | Per-user Swapcard iCal sync, auto-create meetings from "Meet *" events | CAL-01–10 | 4 hrs |
 
 ---
 
@@ -202,6 +203,70 @@ Plans:
 
 ---
 
+### Phase 9: Calendar Integration (Swapcard → Pulse)
+**Goal:** Each CEEALAR teammate connects their Swapcard calendar (via Google Cal iCal URL) so 1:1 meetings booked in Swapcard auto-appear in Pulse — no manual entry. Calendar is the source of truth for time/location; Pulse owns notes, status, action items, members.
+**Mode:** mvp
+**Target time:** 4 hours
+**Requirements:** CAL-01–10
+
+**Why this matters:** During the conference, attendees book 1:1s through Swapcard at the last minute. Manual entry in Pulse doesn't scale when you're walking between sessions. Auto-syncing eliminates the friction and ensures Pulse always reflects reality.
+
+**Design contract:**
+
+**Connecting the calendar (`/me` → "Calendar" section):**
+1. Empty state shows a 3-step illustrated guide:
+   - Step 1 — Link Swapcard to Google Calendar via https://app.swapcard.com/event/eag-london/settings (toggle "Sync to my Google Calendar")
+   - Step 2 — In calendar.google.com, find the auto-created Swapcard calendar under "Other calendars"
+   - Step 3 — Click the calendar's 3-dot menu → "Settings and sharing" → scroll to "Secret address in iCal format" → copy URL
+2. Paste field — validates URL starts with `https://calendar.google.com/calendar/ical/` and ends in `.ics`
+3. "Test sync" button — fetches once, shows event count + 5-event preview before save
+4. Connected state — shows last sync timestamp, event count, "Re-sync now" + "Replace URL" + "Disconnect"
+
+**Sync semantics (calendar wins on time):**
+- iCal owns `scheduled_at`, `location`, `duration_minutes` — refreshed on every sync
+- Pulse owns `status`, `prep_note`, `summary`, `meeting_notes`, `comments`, `action_items`, `meeting_members`, `tags`
+- iCal `UID` stored on the meeting row (new column `ical_uid`) for stable re-syncing
+- If an event disappears from iCal → mark the Pulse meeting `cancelled` (don't delete — preserves notes and history)
+
+**Parsing rules:**
+- Only consider events whose summary/title starts with `Meet ` (case-insensitive, exact word boundary)
+- Strip `Meet ` prefix → remainder is the candidate name
+- Assume one attendee per event (Swapcard convention — confirmed)
+- Match against `attendees.first_name` (case-insensitive)
+- Non-`Meet` events are NOT imported as meetings — they're surfaced read-only in a side panel on `/meetings` for context (talks, lunch, breaks)
+
+**Matching outcomes:**
+- **Exactly 1 attendee matches**: auto-create meeting OR promote existing `want_to_meet` for that attendee to `planned` with the iCal time (preserves prep notes, original owner, history)
+- **Multiple attendees match**: park the event in `/me` → "Unmatched events" tray with a searchable attendee picker; nothing created until user resolves
+- **Zero matches**: same — park in tray with picker; user can resolve or dismiss
+
+**Refresh cadence:**
+- Vercel cron job runs every 5 minutes, 09:00–22:00 BST, Thu 28 May – Sat 31 May 2026
+- Manual "Sync now" button on `/me` and `/meetings` for instant refresh after booking
+- One sync = one user's iCal fetched, parsed, diffed, applied
+
+**Multi-CEEALAR overlap:**
+- If Attila and David both have "Meet Sasha 14:00" in their separate iCals, create two separate Pulse meetings (one per user as owner). The existing soft-conflict warning surfaces the overlap on the attendee detail page. Manual merge: add the other person via meeting_members.
+
+**Storage & security:**
+- `user_ical_urls(user_id, url, created_at, last_synced_at)` — one row per user
+- iCal URLs contain a secret token in the path — never log them, never expose to other users
+- Cron job uses service-role client; user-facing endpoints check `auth.uid() = user_id` before reading the URL
+
+**Success Criteria:**
+1. New `/me` "Calendar" section walks an unconnected user through the 3-step setup with zero outside help
+2. "Test sync" validates the URL and previews events without committing
+3. Connecting Attila's iCal creates planned meetings in Pulse for every `Meet *` event with a unique first-name match in attendees
+4. An existing `want_to_meet` for Sasha is promoted (not duplicated) when iCal imports "Meet Sasha"
+5. Ambiguous match ("Meet Alex" with 3 attendees named Alex) lands in `/me` "Unmatched events" with an attendee picker
+6. No match ("Meet John" with no such attendee) lands in the same tray, can be resolved or dismissed
+7. Removing an event from Google Cal → next sync marks the Pulse meeting as `cancelled` (notes preserved)
+8. Vercel cron fires every 5 min during conference window; manual "Sync now" works any time
+9. Non-`Meet` events (talks, lunch) show in a read-only "My day" side panel on `/meetings` — never become meeting rows
+10. Editing time in Pulse is disabled for iCal-sourced meetings (informs user to edit in Google Cal); other fields editable as normal
+
+---
+
 ## Milestone Definition of Done
 
 All 8 phases complete. Four team members verify on 29 May at EAG London venue:
@@ -221,4 +286,4 @@ All 8 phases complete. Four team members verify on 29 May at EAG London venue:
 
 ---
 *Roadmap created: 2026-05-14*
-*Last updated: 2026-05-15 — Phase 7 planned (3 plans: CSV export + PWA, notifications, skeleton/empty states)*
+*Last updated: 2026-05-17 — Phase 9 added: Calendar Integration (Swapcard iCal sync). Decisions captured in .planning/notes/icalendar-sync-decisions.md.*

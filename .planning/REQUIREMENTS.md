@@ -88,10 +88,23 @@
 
 ### Ship
 
-- [ ] **SHIP-01**: Production URL works on phones with @ceealar.org Google accounts
-- [ ] **SHIP-02**: Non-ceealar email sign-in rejected gracefully
-- [ ] **SHIP-03**: Full smoke test passes: import → browse → tag → schedule → notes → action items → done → export
-- [ ] **SHIP-04**: README.md with live URL, usage intro, env vars, "if it breaks" notes
+- [x] **SHIP-01**: Production URL works on phones with @ceealar.org Google accounts
+- [x] **SHIP-02**: Non-ceealar email sign-in rejected gracefully
+- [x] **SHIP-03**: Full smoke test passes: import → browse → tag → schedule → notes → action items → done → export
+- [x] **SHIP-04**: README.md with live URL, usage intro, env vars, "if it breaks" notes
+
+### Calendar Integration
+
+- [ ] **CAL-01**: `/me` "Calendar" section walks an unconnected user through 3-step Swapcard → Google Cal → iCal URL setup (with link to https://app.swapcard.com/event/eag-london/settings)
+- [ ] **CAL-02**: iCal URL paste field validates URL format (`https://calendar.google.com/calendar/ical/…/basic.ics`); "Test sync" previews events before save
+- [ ] **CAL-03**: Connected state shows last sync timestamp, event count, "Re-sync now" / "Replace URL" / "Disconnect" actions
+- [ ] **CAL-04**: Only events whose title starts with `Meet ` (case-insensitive) are imported as meetings; everything after `Meet ` is the candidate first name
+- [ ] **CAL-05**: Unique first-name match → auto-create `planned` meeting, OR promote existing `want_to_meet` for that attendee (preserves prep notes, original owner, history)
+- [ ] **CAL-06**: Ambiguous match (>1 attendee) and zero match both land in `/me` "Unmatched events" tray with a searchable attendee picker; nothing created until resolved
+- [ ] **CAL-07**: iCal owns `scheduled_at`, `location`, `duration_minutes` (re-synced each refresh); Pulse owns status, notes, action items, members, tags. Editing time in Pulse is disabled for iCal-sourced meetings
+- [ ] **CAL-08**: Event removed from Google Cal → next sync marks the Pulse meeting as `cancelled` (notes/history preserved, not deleted). iCal `UID` stored on meeting row for stable re-syncing
+- [ ] **CAL-09**: Vercel cron job runs every 5 min, 09:00–22:00 BST, 28–31 May 2026; manual "Sync now" button on `/me` and `/meetings` works any time
+- [ ] **CAL-10**: Non-`Meet` events (talks, lunch, breaks) shown as read-only "My day" side panel on `/meetings`; never become meeting rows
 
 ## v2 Requirements
 
@@ -175,16 +188,25 @@
 | EXP-03 | Phase 7 | Pending |
 | EXP-04 | Phase 7 | Pending |
 | EXP-05 | Phase 7 | Pending |
-| SHIP-01 | Phase 8 | Pending |
-| SHIP-02 | Phase 8 | Pending |
-| SHIP-03 | Phase 8 | Pending |
-| SHIP-04 | Phase 8 | Pending |
+| SHIP-01 | Phase 8 | Done ✓ |
+| SHIP-02 | Phase 8 | Done ✓ |
+| SHIP-03 | Phase 8 | Done ✓ |
+| SHIP-04 | Phase 8 | Done ✓ |
+| CAL-01 | Phase 9 | Pending |
+| CAL-02 | Phase 9 | Pending |
+| CAL-03 | Phase 9 | Pending |
+| CAL-04 | Phase 9 | Pending |
+| CAL-05 | Phase 9 | Pending |
+| CAL-06 | Phase 9 | Pending |
+| CAL-07 | Phase 9 | Pending |
+| CAL-08 | Phase 9 | Pending |
+| CAL-09 | Phase 9 | Pending |
+| CAL-10 | Phase 9 | Pending |
 
 **Coverage:**
-- v1 requirements: 57 total
-- Mapped to phases: 57
-- Unmapped: 0 ✓
+- v1 requirements: 57 total — all mapped, all done ✓
+- Phase 9 (CAL): 10 requirements, all mapped, pending
 
 ---
 *Requirements defined: 2026-05-14*
-*Last updated: 2026-05-14 after initial definition*
+*Last updated: 2026-05-17 — added CAL-01–10 for Phase 9 (Calendar Integration)*

@@ -10,9 +10,19 @@ See: `.planning/PROJECT.md` (updated 2026-05-14)
 ## Current Phase
 
 **Phase 8: Ship + Verify**
-- Status: Not started
+- Status: Complete ✓
 - Goal: Production smoke test on real phones, README, four-team sign-off
-- Next action: Run /gsd-plan-phase 8
+- SHIP-01 ✓ Phone sign-in verified (2026-05-17)
+- SHIP-02 ✓ Non-@ceealar.org rejection verified (2026-05-17)
+- SHIP-03 ✓ Full smoke test passed: import → search → tag → schedule → notes → action items → done → export (2026-05-17)
+- SHIP-04 ✓ README.md committed and pushed (2026-05-17)
+
+**Phase 9: Calendar Integration**
+- Status: Spec'd, not started
+- Goal: Per-user Swapcard iCal sync — auto-import "Meet *" events as planned meetings, calendar wins on time, Pulse owns notes/status
+- Spec: ROADMAP.md → Phase 9
+- Decisions: .planning/notes/icalendar-sync-decisions.md
+- Next action: Run /gsd:plan-phase 9
 
 ## Phase History
 
@@ -26,7 +36,8 @@ See: `.planning/PROJECT.md` (updated 2026-05-14)
 | Phase 5: Schedule + Conflicts | Complete ✓ | 2026-05-15 |
 | Phase 6: Realtime + Feed | Complete ✓ | 2026-05-15 |
 | Phase 7: Export + Polish | Complete ✓ | 2026-05-15 |
-| Phase 8: Ship + Verify | Not started | — |
+| Phase 8: Ship + Verify | Complete ✓ | 2026-05-17 |
+| Phase 9: Calendar Integration | Spec'd | — |
 
 ## Blocked On
 
@@ -87,4 +98,4 @@ Google OAuth configured in Supabase Auth dashboard (not env vars).
 ---
 *State initialized: 2026-05-14*
 *Last session: 2026-05-15 — Completed Phase 7 (Export + Polish) with UAT approval. CSV export at /admin/export (27 columns, ~1904 rows), PWA manifest + teal icons, NotificationProvider with opt-in banner (Chrome requires user gesture), skeleton loading.tsx for all routes, empty states with helpful copy.*
-*Stopped at: Phase 8 (Ship + Verify) — run /gsd-plan-phase 8*
+*Session 2026-05-17 — Phase 8 complete. Fixed broken lightningcss native binary (npm install). Build passes clean. Wrote production README.md. All four SHIP requirements verified by Attila: phone sign-in, domain rejection, full smoke test (import→export), README pushed. v1.0 milestone DONE — all 9 phases complete, all 57 requirements met.*
