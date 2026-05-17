@@ -3,7 +3,6 @@
 import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { SigninCanvas } from './_components/signin-canvas'
 
 const EVENT_START = new Date('2026-05-29T09:00:00+01:00').getTime()
 
@@ -98,50 +97,65 @@ export default function SignInPage() {
       className="min-h-dvh flex flex-col items-center justify-center gap-10 px-4 relative overflow-hidden isolate"
       style={{ backgroundColor: 'var(--color-cream)' }}
     >
-      {/* Layered atmosphere */}
+      {/* Hero image — slow zoom for cinematic feel */}
       <div
         aria-hidden
-        className="absolute inset-0 -z-10"
+        className="absolute inset-0 -z-20 bg-cover bg-center"
         style={{
-          backgroundImage:
-            'radial-gradient(at 80% 10%, rgba(15,118,110,0.18), transparent 55%),' +
-            'radial-gradient(at 15% 90%, rgba(212,160,23,0.22), transparent 55%),' +
-            'radial-gradient(at 50% 50%, rgba(255,255,255,0.6), transparent 70%)',
+          backgroundImage: 'url(/signin-hero.png)',
+          animation: 'hero-drift 24s ease-in-out infinite alternate',
         }}
       />
 
-      {/* Animated constellation */}
-      <div className="absolute inset-0 -z-10">
-        <SigninCanvas />
-      </div>
-
-      {/* Vignette */}
+      {/* Cream wash to keep content readable over the image */}
       <div
         aria-hidden
         className="absolute inset-0 -z-10 pointer-events-none"
         style={{
           backgroundImage:
-            'radial-gradient(ellipse at center, transparent 50%, rgba(15,23,42,0.06) 100%)',
+            'radial-gradient(ellipse at center, rgba(250,247,240,0.55) 0%, rgba(250,247,240,0.75) 60%, rgba(250,247,240,0.9) 100%)',
+        }}
+      />
+
+      {/* Top + bottom edge fades for vignette */}
+      <div
+        aria-hidden
+        className="absolute inset-x-0 top-0 h-32 -z-10 pointer-events-none"
+        style={{
+          backgroundImage:
+            'linear-gradient(to bottom, var(--color-cream) 0%, transparent 100%)',
+        }}
+      />
+      <div
+        aria-hidden
+        className="absolute inset-x-0 bottom-0 h-32 -z-10 pointer-events-none"
+        style={{
+          backgroundImage:
+            'linear-gradient(to top, var(--color-cream) 0%, transparent 100%)',
         }}
       />
 
       {/* Decorative slow-pulse aura around the wordmark */}
       <div
         aria-hidden
-        className="absolute top-[34%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[440px] h-[440px] rounded-full opacity-50 pointer-events-none -z-10"
+        className="absolute top-[36%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] h-[520px] rounded-full opacity-40 pointer-events-none -z-10"
         style={{
-          backgroundImage: 'radial-gradient(circle, rgba(15,118,110,0.18), transparent 60%)',
+          backgroundImage: 'radial-gradient(circle, rgba(15,118,110,0.22), transparent 65%)',
           animation: 'pulse-aura 6s ease-in-out infinite',
         }}
       />
       <style>{`
         @keyframes pulse-aura {
-          0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
-          50%      { transform: translate(-50%, -50%) scale(1.08); opacity: 0.75; }
+          0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.4; }
+          50%      { transform: translate(-50%, -50%) scale(1.08); opacity: 0.7; }
         }
         @keyframes pulse-dot {
           0%, 100% { opacity: 0.3; transform: scale(1); }
           50%      { opacity: 1;    transform: scale(1.6); }
+        }
+        @keyframes hero-drift {
+          0%   { transform: scale(1) translate(0, 0); }
+          100% { transform: scale(1.05) translate(-1%, 1%); }
         }
         @media (prefers-reduced-motion: reduce) {
           [data-reduced-motion-respect] { animation: none !important; }
