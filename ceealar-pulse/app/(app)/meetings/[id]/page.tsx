@@ -151,7 +151,7 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
                   teamMembers={teamMembers}
                 />
               )}
-              <DeleteMeetingButton meetingId={id} attendeeId={meeting.attendee_id} />
+              <DeleteMeetingButton meetingId={id} attendeeId={meeting.attendee_id} isIcal={meeting.source === 'ical'} />
             </div>
           )}
         </div>
@@ -164,7 +164,7 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
           )}
         </p>
         {meeting.source === 'ical' && isOwner && (
-          <p className="text-xs text-muted-foreground italic">Time and location sync from Google Calendar — edit there.</p>
+          <p className="text-xs text-muted-foreground italic">Time and location sync from Swapcard — edit there.</p>
         )}
 
         {meeting.scheduled_at && (
@@ -188,6 +188,7 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
           meetingId={id}
           currentStatus={meeting.status}
           isOwner={isOwner}
+          isIcal={meeting.source === 'ical'}
         />
         {['done', 'no_show', 'cancelled'].includes(meeting.status) && (
           <p className="text-xs text-muted-foreground">
@@ -198,7 +199,7 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
 
       {/* Section 3 — Assignees */}
       <div className="border rounded-lg p-4 bg-card space-y-2">
-        <h2 className="text-base font-semibold">Assigned to</h2>
+        <h2 className="text-base font-semibold">Also invite</h2>
         <MeetingMembersSection
           meetingId={id}
           initialMembers={meetingMembers}

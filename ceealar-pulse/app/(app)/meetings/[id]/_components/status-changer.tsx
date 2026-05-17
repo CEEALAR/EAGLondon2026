@@ -9,6 +9,7 @@ interface StatusChangerProps {
   meetingId: string
   currentStatus: MeetingStatus
   isOwner: boolean
+  isIcal?: boolean
 }
 
 const STATUS_LABELS: Record<MeetingStatus, string> = {
@@ -27,7 +28,7 @@ const STATUS_CLASSES: Record<MeetingStatus, string> = {
   cancelled:    'bg-gray-200 text-gray-500',
 }
 
-export function StatusChanger({ meetingId, currentStatus, isOwner }: StatusChangerProps) {
+export function StatusChanger({ meetingId, currentStatus, isOwner, isIcal = false }: StatusChangerProps) {
   const router = useRouter()
   const [saving, setSaving] = useState(false)
 
@@ -105,16 +106,20 @@ export function StatusChanger({ meetingId, currentStatus, isOwner }: StatusChang
       >
         No Show
       </Button>,
-      <Button
-        key="cancel"
-        size="sm"
-        variant="outline"
-        disabled={saving}
-        onClick={() => changeStatus('cancelled')}
-      >
-        Cancel Meeting
-      </Button>
     )
+    if (!isIcal) {
+      actionButtons.push(
+        <Button
+          key="cancel"
+          size="sm"
+          variant="outline"
+          disabled={saving}
+          onClick={() => changeStatus('cancelled')}
+        >
+          Cancel Meeting
+        </Button>
+      )
+    }
   }
 
   if (currentStatus === 'want_to_meet' || currentStatus === 'planned') {
