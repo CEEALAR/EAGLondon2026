@@ -1,6 +1,7 @@
 import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { ImportWidget } from './_components/import-widget'
 import { ExportWidget } from './_components/export-widget'
+import { PriorityImportWidget } from './_components/priority-import-widget'
 
 type TagWithCount = { id: string; name: string; color: string; count: number }
 
@@ -124,13 +125,22 @@ export default async function AdminPage() {
         )}
       </section>
 
-      {/* Import */}
+      {/* Import attendees */}
       <section>
         <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-1">Import attendees</h2>
         <p className="text-sm text-muted-foreground mb-3">
           Upload the Swapcard .xlsx export. Re-importing is safe — rows are upserted by Swapcard URL.
         </p>
         <ImportWidget />
+      </section>
+
+      {/* Import priority list */}
+      <section>
+        <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-1">Import CEEALAR Top-N priority list</h2>
+        <p className="text-sm text-muted-foreground mb-3">
+          XLSX with Rank, Category, Why Relevant, Talking Points, Swapcard URL columns. Imports priority (1–5), category tag, and strategic context. Your in-app edits are preserved — the spreadsheet&apos;s version shows as &ldquo;Spreadsheet says…&rdquo; on the profile.
+        </p>
+        <PriorityImportWidget />
       </section>
 
       {/* Export */}

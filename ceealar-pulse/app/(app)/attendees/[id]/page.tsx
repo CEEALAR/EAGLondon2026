@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { StrategicContextForm } from '@/app/(app)/attendees/_components/strategic-context-form'
 import { MeetingCreateDialog } from '@/app/(app)/attendees/_components/meeting-create-dialog'
 import { AssignColleagueButton } from '@/app/(app)/attendees/_components/assign-colleague-button'
+import { PriorityBadge } from '@/components/priority-badge'
 import type { TeamMember, MeetingStatus } from '@/lib/types'
 import { AttendeeTagsSection } from './_components/attendee-tags-section'
 import type { Tag } from '@/lib/types'
@@ -114,7 +115,10 @@ export default async function AttendeeDetailPage(props: { params: Promise<{ id: 
 
       {/* Section 1 — Header */}
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold">{fullName}</h1>
+        <div className="flex items-start gap-2 flex-wrap">
+          <h1 className="text-2xl font-bold">{fullName}</h1>
+          <PriorityBadge priority={attendee.priority} />
+        </div>
         {subtitle && <p className="text-muted-foreground">{subtitle}</p>}
         {(attendee.career_stage || attendee.linkedin) && (
           <p className="text-sm text-muted-foreground flex items-center flex-wrap gap-2">
@@ -235,6 +239,11 @@ export default async function AttendeeDetailPage(props: { params: Promise<{ id: 
             hypothesis: attendee.hypothesis,
             risks: attendee.risks,
             collaboration_hooks: attendee.collaboration_hooks,
+          }}
+          spreadsheetSays={{
+            why_they_matter: attendee.priority_imported_why_relevant,
+            how_to_engage: attendee.priority_imported_talking_points,
+            imported_at: attendee.priority_imported_at,
           }}
         />
       </div>

@@ -24,6 +24,12 @@ export type Attendee = {
   hypothesis: string | null
   risks: string | null
   collaboration_hooks: string | null
+  // Priority list import (Top-N curation from XLSX)
+  priority: number | null
+  priority_category: string | null
+  priority_imported_at: string | null
+  priority_imported_why_relevant: string | null
+  priority_imported_talking_points: string | null
   created_at: string
   updated_at: string
   attendee_tags?: { tag_id: string }[]

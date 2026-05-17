@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { SlidersHorizontal, X, ChevronDown } from 'lucide-react'
+import { PRIORITY_LABELS } from '@/components/priority-badge'
 
 interface AttendeeListProps {
   attendees: Attendee[]
@@ -17,6 +18,7 @@ interface AttendeeListProps {
 
 type FilterState = {
   tagIds: Set<string>
+  priority: Set<number>
   expertise: Set<string>
   interests: Set<string>
   careerStage: Set<string>
@@ -26,6 +28,7 @@ type FilterState = {
 
 const emptyFilters = (): FilterState => ({
   tagIds: new Set(),
+  priority: new Set(),
   expertise: new Set(),
   interests: new Set(),
   careerStage: new Set(),
@@ -36,6 +39,7 @@ const emptyFilters = (): FilterState => ({
 function activeCount(f: FilterState): number {
   return (
     f.tagIds.size +
+    f.priority.size +
     f.expertise.size +
     f.interests.size +
     f.careerStage.size +
@@ -64,6 +68,7 @@ export function AttendeeList({ attendees, allTags }: AttendeeListProps) {
     const careerStageCounts = new Map<string, number>()
     const countryCounts = new Map<string, number>()
     const seekingWorkCounts = new Map<string, number>()
+    const priorityCounts = new Map<number, number>()
 
     for (const a of attendees) {
       for (const e of a.expertise ?? []) {
@@ -80,11 +85,19 @@ export function AttendeeList({ attendees, allTags }: AttendeeListProps) {
       if (co) countryCounts.set(co, (countryCounts.get(co) ?? 0) + 1)
       const sw = typeof a.seeking_work === 'string' ? a.seeking_work.trim() : null
       if (sw) seekingWorkCounts.set(sw, (seekingWorkCounts.get(sw) ?? 0) + 1)
+      if (typeof a.priority === 'number' && a.priority >= 1 && a.priority <= 5) {
+        priorityCounts.set(a.priority, (priorityCounts.get(a.priority) ?? 0) + 1)
+      }
     }
 
     function sorted(m: Map<string, number>) {
       return [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
     }
+
+    // Priority sorted from highest (5) to lowest (1)
+    const priority: [number, number][] = [5, 4, 3, 2, 1]
+      .filter((p) => priorityCounts.has(p))
+      .map((p) => [p, priorityCounts.get(p)!])
 
     return {
       expertise: sorted(expertiseCounts),
@@ -92,6 +105,7 @@ export function AttendeeList({ attendees, allTags }: AttendeeListProps) {
       careerStage: sorted(careerStageCounts),
       country: sorted(countryCounts),
       seekingWork: sorted(seekingWorkCounts),
+      priority,
     }
   }, [attendees])
 
@@ -104,6 +118,10 @@ export function AttendeeList({ attendees, allTags }: AttendeeListProps) {
       result = result.filter((a) =>
         [a.first_name, a.last_name, a.company].some((f) => f?.toLowerCase().includes(q))
       )
+    }
+
+    if (applied.priority.size > 0) {
+      result = result.filter((a) => typeof a.priority === 'number' && applied.priority.has(a.priority))
     }
 
     if (applied.tagIds.size > 0) {
@@ -177,6 +195,7 @@ export function AttendeeList({ attendees, allTags }: AttendeeListProps) {
           onClick={() => {
             setDraft({
               tagIds: new Set(applied.tagIds),
+              priority: new Set(applied.priority),
               expertise: new Set(applied.expertise),
               interests: new Set(applied.interests),
               careerStage: new Set(applied.careerStage),
@@ -242,6 +261,32 @@ export function AttendeeList({ attendees, allTags }: AttendeeListProps) {
           </SheetHeader>
 
           <div className="mt-4 space-y-4">
+            {/* Priority */}
+            {facets.priority.length > 0 && (
+              <FilterSection
+                title="Priority"
+                count={draft.priority.size}
+                defaultOpen={draft.priority.size > 0 || facets.priority.length > 0}
+              >
+                <div className="space-y-0.5">
+                  {facets.priority.map(([p, count]) => (
+                    <label key={p} className="flex items-center gap-2 cursor-pointer py-1">
+                      <Checkbox
+                        checked={draft.priority.has(p)}
+                        onCheckedChange={(c) =>
+                          setDraft((d) => ({ ...d, priority: toggleSet(d.priority, p, !!c) }))
+                        }
+                      />
+                      <span className="text-sm flex-1">
+                        {PRIORITY_LABELS[p]} <span className="text-xs text-muted-foreground">(P{p})</span>
+                      </span>
+                      <span className="text-xs text-muted-foreground tabular-nums">{count}</span>
+                    </label>
+                  ))}
+                </div>
+              </FilterSection>
+            )}
+
             {/* Tags */}
             <FilterSection
               title="Tags"

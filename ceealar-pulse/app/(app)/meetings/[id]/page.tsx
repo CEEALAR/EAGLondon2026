@@ -11,6 +11,7 @@ import { DeleteMeetingButton } from './_components/delete-meeting-button'
 import { EditMeetingButton } from './_components/edit-meeting-button'
 import { MeetingMembersSection } from './_components/meeting-members-section'
 import { AttendeeProfileSection } from '@/app/(app)/attendees/_components/attendee-profile-section'
+import { PriorityBadge } from '@/components/priority-badge'
 import type { ActionItem, MeetingStatus, TeamMember } from '@/lib/types'
 
 type MeetingRow = {
@@ -90,7 +91,7 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
   const [{ data: attendee }, { data: attendeeTagRows }, { data: allTagsData }] = await Promise.all([
     supabase
       .from('attendees')
-      .select('company, job_title, linkedin, biography, expertise, interests, how_others_can_help, how_i_can_help, country, career_stage, seeking_work, recruitment, swapcard_url')
+      .select('company, job_title, linkedin, priority, biography, expertise, interests, how_others_can_help, how_i_can_help, country, career_stage, seeking_work, recruitment, swapcard_url')
       .eq('id', attendeeId)
       .maybeSingle(),
     supabase.from('attendee_tags').select('tag_id').eq('attendee_id', attendeeId),
@@ -135,14 +136,17 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
       <div className="space-y-2">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
-            <h1 className="text-2xl font-bold">
-              <Link
-                href={`/attendees/${meeting.attendee_id}`}
-                className="hover:underline underline-offset-4"
-              >
-                {attendeeName}
-              </Link>
-            </h1>
+            <div className="flex items-start gap-2 flex-wrap">
+              <h1 className="text-2xl font-bold">
+                <Link
+                  href={`/attendees/${meeting.attendee_id}`}
+                  className="hover:underline underline-offset-4"
+                >
+                  {attendeeName}
+                </Link>
+              </h1>
+              {attendee && <PriorityBadge priority={attendee.priority} />}
+            </div>
             {attendee && (attendee.company || attendee.job_title || attendee.linkedin) && (
               <p className="text-muted-foreground text-sm mt-1 flex items-center flex-wrap gap-x-2">
                 {(attendee.company || attendee.job_title) && (
