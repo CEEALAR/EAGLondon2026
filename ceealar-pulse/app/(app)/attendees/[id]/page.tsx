@@ -155,7 +155,27 @@ export default async function AttendeeDetailPage(props: { params: Promise<{ id: 
         </div>
       </div>
 
-      {/* Section 2 — Swapcard Profile */}
+      {/* Section 2 — CEEALAR Strategic Context (the most actionable info goes first) */}
+      <div className="border rounded-lg p-4 bg-card">
+        <h2 className="text-lg font-semibold mb-4">CEEALAR Strategic Context</h2>
+        <StrategicContextForm
+          attendeeId={attendee.id}
+          initialValues={{
+            why_they_matter: attendee.why_they_matter,
+            how_to_engage: attendee.how_to_engage,
+            hypothesis: attendee.hypothesis,
+            risks: attendee.risks,
+            collaboration_hooks: attendee.collaboration_hooks,
+          }}
+          spreadsheetSays={{
+            why_they_matter: attendee.priority_imported_why_relevant,
+            how_to_engage: attendee.priority_imported_talking_points,
+            imported_at: attendee.priority_imported_at,
+          }}
+        />
+      </div>
+
+      {/* Section 3 — Swapcard Profile */}
       <div className="border rounded-lg p-4 space-y-3 bg-card">
         <h2 className="text-lg font-semibold mb-3">Profile</h2>
 
@@ -189,13 +209,7 @@ export default async function AttendeeDetailPage(props: { params: Promise<{ id: 
 
         <ProfileField label="Career Stage">{attendee.career_stage ?? '-'}</ProfileField>
 
-        <ProfileField label="Seeking Work">
-          {attendee.seeking_work === true
-            ? 'Yes'
-            : attendee.seeking_work === false
-            ? 'No'
-            : '-'}
-        </ProfileField>
+        <ProfileField label="Seeking Work">{attendee.seeking_work ?? '-'}</ProfileField>
 
         <ProfileField label="Recruitment">{attendee.recruitment ?? '-'}</ProfileField>
 
@@ -226,26 +240,6 @@ export default async function AttendeeDetailPage(props: { params: Promise<{ id: 
             '-'
           )}
         </ProfileField>
-      </div>
-
-      {/* Section 3 — CEEALAR Strategic Context */}
-      <div className="border rounded-lg p-4 bg-card">
-        <h2 className="text-lg font-semibold mb-4">CEEALAR Strategic Context</h2>
-        <StrategicContextForm
-          attendeeId={attendee.id}
-          initialValues={{
-            why_they_matter: attendee.why_they_matter,
-            how_to_engage: attendee.how_to_engage,
-            hypothesis: attendee.hypothesis,
-            risks: attendee.risks,
-            collaboration_hooks: attendee.collaboration_hooks,
-          }}
-          spreadsheetSays={{
-            why_they_matter: attendee.priority_imported_why_relevant,
-            how_to_engage: attendee.priority_imported_talking_points,
-            imported_at: attendee.priority_imported_at,
-          }}
-        />
       </div>
 
       {/* Section 4 — Tags */}
