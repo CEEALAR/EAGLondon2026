@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { AttendeeActions } from '@/app/(app)/attendees/_components/attendee-actions'
 import { AssignColleagueButton } from '@/app/(app)/attendees/_components/assign-colleague-button'
 import { MeetingNotesForm } from '@/app/(app)/meetings/[id]/_components/meeting-notes-form'
-import { PriorityBadge } from '@/components/priority-badge'
+import { PriorityEditor } from '@/components/priority-editor'
 import type { TeamMember, MeetingStatus } from '@/lib/types'
 import { AttendeeTagsSection } from './_components/attendee-tags-section'
 import type { Tag } from '@/lib/types'
@@ -150,7 +150,7 @@ export default async function AttendeeDetailPage(props: { params: Promise<{ id: 
               <h1 className="editorial-h1 text-3xl md:text-4xl font-bold text-foreground">
                 {fullName}
               </h1>
-              <PriorityBadge priority={attendee.priority} />
+              <PriorityEditor attendeeId={attendee.id} initialPriority={attendee.priority} />
             </div>
             {subtitle && (
               <p className="text-base text-foreground/80 tracking-tight">{subtitle}</p>

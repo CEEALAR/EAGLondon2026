@@ -11,7 +11,7 @@ import { DeleteMeetingButton } from './_components/delete-meeting-button'
 import { EditMeetingButton } from './_components/edit-meeting-button'
 import { MeetingMembersSection } from './_components/meeting-members-section'
 import { AttendeeProfileSection } from '@/app/(app)/attendees/_components/attendee-profile-section'
-import { PriorityBadge } from '@/components/priority-badge'
+import { PriorityEditor } from '@/components/priority-editor'
 import type { ActionItem, MeetingStatus, TeamMember } from '@/lib/types'
 
 type MeetingRow = {
@@ -153,7 +153,7 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
                   {attendeeName}
                 </Link>
               </h1>
-              {attendee && <PriorityBadge priority={attendee.priority} />}
+              {attendee && <PriorityEditor attendeeId={attendeeId} initialPriority={attendee.priority} />}
             </div>
             {attendee && (attendee.company || attendee.job_title || attendee.linkedin) && (
               <p className="text-base text-foreground/80 mt-1 flex items-center flex-wrap gap-x-2 tracking-tight">
