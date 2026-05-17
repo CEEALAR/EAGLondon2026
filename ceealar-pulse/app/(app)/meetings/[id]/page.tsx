@@ -9,6 +9,7 @@ import { FollowUpDate } from './_components/follow-up-date'
 import { DeleteMeetingButton } from './_components/delete-meeting-button'
 import { EditMeetingButton } from './_components/edit-meeting-button'
 import { MeetingMembersSection } from './_components/meeting-members-section'
+import { AttendeeProfileSection } from '@/app/(app)/attendees/_components/attendee-profile-section'
 import type { ActionItem, MeetingStatus, TeamMember } from '@/lib/types'
 
 type MeetingRow = {
@@ -82,6 +83,13 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
     throw new Error(`Meeting fetch failed: ${meetingErr.message}`)
   }
   if (!meetingRaw) notFound()
+
+  // Fetch the full attendee profile to render under the meeting info
+  const { data: attendee } = await supabase
+    .from('attendees')
+    .select('biography, expertise, interests, how_others_can_help, how_i_can_help, country, career_stage, seeking_work, recruitment, swapcard_url, linkedin')
+    .eq('id', (meetingRaw as { attendee_id: string }).attendee_id)
+    .maybeSingle()
 
   const meeting = meetingRaw as unknown as MeetingRow
 
@@ -227,6 +235,9 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
       <div className="border rounded-lg p-4 bg-card">
         <FollowUpDate meetingId={id} initialDate={meeting.follow_up_date} />
       </div>
+
+      {/* Section 7 — Swapcard profile (read-only) */}
+      {attendee && <AttendeeProfileSection attendee={attendee} />}
     </div>
   )
 }
