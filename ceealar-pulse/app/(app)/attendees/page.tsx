@@ -10,7 +10,11 @@ export default async function AttendeesPage() {
     { data: attendeesData, error },
     { data: allTagsData },
   ] = await Promise.all([
-    supabase.from('attendees').select('*, attendee_tags(tag_id)').order('last_name', { ascending: true }),
+    supabase
+      .from('attendees')
+      .select('*, attendee_tags(tag_id)')
+      .order('last_name', { ascending: true })
+      .range(0, 9999),
     supabase.from('tags').select('id, name, color, is_system').order('name'),
   ])
 

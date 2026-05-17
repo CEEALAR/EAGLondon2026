@@ -122,6 +122,7 @@ export default async function MePage() {
     const { data } = await admin
       .from('attendees')
       .select('id, first_name, last_name, company')
+      .range(0, 9999)
     attendees = (data ?? []) as AttendeeMini[]
   }
 

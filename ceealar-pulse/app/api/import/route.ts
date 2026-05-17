@@ -171,6 +171,7 @@ export async function POST(req: NextRequest) {
   const { data: existingRows, error: fetchError } = await adminClient
     .from('attendees')
     .select('swapcard_url')
+    .range(0, 9999)
 
   if (fetchError) {
     return NextResponse.json(

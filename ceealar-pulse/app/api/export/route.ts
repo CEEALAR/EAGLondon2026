@@ -94,6 +94,7 @@ export async function GET() {
     .from('attendees')
     .select('*, attendee_tags(tag_id, tags(name))')
     .order('last_name')
+    .range(0, 9999)
 
   if (attendeesError) {
     return new Response(`Failed to fetch attendees: ${attendeesError.message}`, { status: 500 })
