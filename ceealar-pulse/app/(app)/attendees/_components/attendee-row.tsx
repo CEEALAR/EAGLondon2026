@@ -2,6 +2,7 @@
 
 import React from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { Attendee } from '@/lib/types'
 import { Badge } from '@/components/ui/badge'
 import { PriorityBadge } from '@/components/priority-badge'
@@ -31,6 +32,9 @@ function paletteFor(id: string) {
 }
 
 export function AttendeeRow({ attendee, style }: AttendeeRowProps) {
+  const pathname = usePathname()
+  const isActive = pathname === `/attendees/${attendee.id}`
+
   const firstInitial = attendee.first_name?.charAt(0).toUpperCase() ?? '?'
   const lastInitial = attendee.last_name?.charAt(0).toUpperCase() ?? ''
   const initials = (firstInitial + lastInitial).slice(0, 2)
@@ -48,8 +52,19 @@ export function AttendeeRow({ attendee, style }: AttendeeRowProps) {
     <div style={style} className="absolute w-full">
       <Link
         href={`/attendees/${attendee.id}`}
-        className="press group flex items-center w-full h-[72px] px-4 gap-3 border-b border-border/60 cursor-pointer hover:bg-card/60 transition-colors duration-150"
+        aria-current={isActive ? 'page' : undefined}
+        className={`press group flex items-center w-full h-[72px] px-4 gap-3 border-b border-border/60 cursor-pointer transition-colors duration-150 relative ${
+          isActive
+            ? 'bg-[var(--color-teal)]/8 hover:bg-[var(--color-teal)]/12'
+            : 'hover:bg-card/60'
+        }`}
       >
+        {isActive && (
+          <span
+            aria-hidden
+            className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-[var(--color-teal)]"
+          />
+        )}
         {/* Gradient avatar with subtle ring */}
         <div
           className="flex items-center justify-center w-11 h-11 rounded-full shrink-0 text-white font-semibold text-sm tracking-tight ring-1 ring-black/5 shadow-sm transition-transform duration-200 group-hover:scale-[1.04]"

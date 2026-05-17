@@ -96,9 +96,9 @@ export default async function AttendeeDetailPage(props: { params: Promise<{ id: 
   ]
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6 space-y-8">
-      {/* Back navigation */}
-      <Link href="/attendees" className="text-sm text-muted-foreground">
+    <div className="max-w-2xl mx-auto md:mx-0 px-4 md:px-6 py-6 space-y-8">
+      {/* Back navigation — only on mobile where the sidebar isn't visible */}
+      <Link href="/attendees" className="text-sm text-muted-foreground md:hidden block">
         ← Back to attendees
       </Link>
 

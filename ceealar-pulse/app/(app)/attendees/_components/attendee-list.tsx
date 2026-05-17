@@ -186,7 +186,7 @@ export function AttendeeList({ attendees, allTags }: AttendeeListProps) {
   const appliedCount = activeCount(applied)
 
   return (
-    <div className="flex flex-col h-[calc(100vh-56px-64px)] md:h-[calc(100vh-56px)]">
+    <div className="flex flex-col h-[calc(100dvh-4rem)] md:h-full md:min-h-0 flex-1">
       {/* Search bar row */}
       <div className="flex gap-2 px-4 py-2 sticky top-0 bg-background/85 backdrop-blur-md z-10 border-b border-border/70 shrink-0">
         <div className="relative flex-1">

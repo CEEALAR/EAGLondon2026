@@ -1,47 +1,34 @@
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
-import { Attendee, Tag } from '@/lib/types'
-import { AttendeeList } from './_components/attendee-list'
+import { AttendeesSidebar } from './_components/attendees-sidebar'
 
-export default async function AttendeesPage() {
-  const supabase = await createClient()
+export const dynamic = 'force-dynamic'
 
-  const [
-    { data: attendeesData, error },
-    { data: allTagsData },
-  ] = await Promise.all([
-    supabase
-      .from('attendees')
-      .select('*, attendee_tags(tag_id)')
-      .order('last_name', { ascending: true })
-      .range(0, 9999),
-    supabase.from('tags').select('id, name, color, is_system').order('name'),
-  ])
-
-  if (error) {
-    console.error('[AttendeesPage] Failed to fetch attendees:', error.message)
-  }
-
-  const attendees = (attendeesData as Attendee[]) ?? []
-  const allTags = (allTagsData as Tag[]) ?? []
-
-  if (attendees.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
-        <p className="text-base font-medium text-foreground">No attendees imported yet</p>
-        <p className="text-sm text-muted-foreground mt-1">
-          Visit{' '}
-          <Link
-            href="/admin/import"
-            className="text-[var(--color-teal)] underline underline-offset-2"
-          >
-            /admin/import
-          </Link>{' '}
-          to upload the Swapcard spreadsheet.
-        </p>
+export default function AttendeesPage() {
+  return (
+    <div className="md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] md:h-[calc(100vh-3.5rem)]">
+      {/* Mobile: full-width list. Desktop: left column. */}
+      <div className="md:border-r md:border-border/60 flex flex-col min-h-0">
+        <AttendeesSidebar />
       </div>
-    )
-  }
 
-  return <AttendeeList attendees={attendees} allTags={allTags} />
+      {/* Right column: only visible on desktop, prompts user to pick someone */}
+      <div className="hidden md:flex md:items-center md:justify-center md:p-8 md:min-h-0">
+        <div className="text-center max-w-sm fade-up">
+          <div className="w-16 h-16 mx-auto rounded-full bg-[var(--color-teal)]/10 flex items-center justify-center mb-4">
+            <span className="text-2xl">👋</span>
+          </div>
+          <p className="font-medium text-base text-foreground">Pick someone to start</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Tap an attendee to see their profile, strategic context, and meeting history.
+          </p>
+          <Link
+            href="/meetings"
+            className="inline-block mt-4 text-sm text-[var(--color-teal)] hover:underline"
+          >
+            Or jump to your schedule →
+          </Link>
+        </div>
+      </div>
+    </div>
+  )
 }
