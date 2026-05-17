@@ -249,7 +249,7 @@ export function CalendarSection({ initialCalendar }: Props) {
       {preview && (
         <div className="rounded-lg border border-gray-200 bg-white px-4 py-3 text-xs space-y-2">
           <p className="font-medium text-sm">
-            Found {preview.meetEvents} meeting event{preview.meetEvents === 1 ? '' : 's'} ({preview.totalEvents} total in feed)
+            Found {preview.meetEvents} EAG London 2026 meeting{preview.meetEvents === 1 ? '' : 's'} ({preview.totalEvents} total events in feed, filtered to 28 May – 1 Jun)
           </p>
           {preview.preview.length > 0 ? (
             <ul className="space-y-1 text-muted-foreground">

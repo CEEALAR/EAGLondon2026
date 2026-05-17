@@ -8,6 +8,11 @@ export const maxDuration = 30
 
 const ICAL_URL_RE = /^https:\/\/calendar\.google\.com\/calendar\/ical\/.+\.ics(\?.*)?$/
 
+// Match the conference window used by syncUserCalendar so the preview reflects
+// what will actually be imported.
+const WINDOW_START = Date.UTC(2026, 4, 28, 0, 0, 0)
+const WINDOW_END   = Date.UTC(2026, 5, 1, 0, 0, 0)
+
 // POST — validate a URL by fetching it and returning a preview (no DB writes)
 export async function POST(req: NextRequest) {
   const supabase = await createClient()
@@ -22,7 +27,11 @@ export async function POST(req: NextRequest) {
   try {
     const text = await fetchICalText(url.trim())
     const events = parseICalText(text)
-    const meetEvents = events.filter((e) => e.candidateName !== null)
+    const meetEvents = events.filter((e) => {
+      if (e.candidateName === null) return false
+      const t = e.startAt.getTime()
+      return t >= WINDOW_START && t < WINDOW_END
+    })
     const preview = meetEvents.slice(0, 5).map((e) => ({
       summary: e.summary,
       candidateName: e.candidateName,
