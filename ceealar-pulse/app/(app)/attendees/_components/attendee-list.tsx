@@ -250,10 +250,81 @@ export function AttendeeList({ attendees, allTags }: AttendeeListProps) {
         </button>
       </div>
 
-      {/* Result count strip */}
+      {/* Result count strip + active filter chips */}
       {(appliedCount > 0 || debouncedQuery) && (
-        <div className="px-4 py-1.5 text-xs text-muted-foreground bg-muted/30 border-b border-border">
-          {filtered.length.toLocaleString()} of {attendees.length.toLocaleString()} attendees
+        <div className="px-4 py-2 text-xs bg-muted/30 border-b border-border/70 shrink-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-muted-foreground tabular-nums shrink-0">
+              {filtered.length.toLocaleString()} of {attendees.length.toLocaleString()}
+            </span>
+            {/* Priority chips */}
+            {[...applied.priority]
+              .sort((a, b) => b - a)
+              .map((p) => (
+                <button
+                  key={`pri-${p}`}
+                  onClick={() =>
+                    setApplied((a) => ({ ...a, priority: toggleSet(a.priority, p, false) }))
+                  }
+                  className="press inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--color-teal)]/10 text-[var(--color-teal)] hover:bg-[var(--color-teal)]/15"
+                >
+                  {PRIORITY_LABELS[p]}
+                  <X size={11} />
+                </button>
+              ))}
+            {/* Tag chips */}
+            {[...applied.tagIds].map((id) => {
+              const t = allTags.find((tag) => tag.id === id)
+              if (!t) return null
+              return (
+                <button
+                  key={`tag-${id}`}
+                  onClick={() =>
+                    setApplied((a) => ({ ...a, tagIds: toggleSet(a.tagIds, id, false) }))
+                  }
+                  className="press inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted hover:bg-muted/80"
+                  style={{ color: t.color }}
+                >
+                  <span
+                    className="inline-block w-1.5 h-1.5 rounded-full"
+                    style={{ backgroundColor: t.color }}
+                  />
+                  {t.name}
+                  <X size={11} />
+                </button>
+              )
+            })}
+            {/* Generic value chips for the text dimensions */}
+            {([
+              ['expertise', applied.expertise] as const,
+              ['interests', applied.interests] as const,
+              ['careerStage', applied.careerStage] as const,
+              ['country', applied.country] as const,
+              ['seekingWork', applied.seekingWork] as const,
+            ]).flatMap(([key, set]) =>
+              [...set].map((v) => (
+                <button
+                  key={`${key}-${v}`}
+                  onClick={() =>
+                    setApplied((a) => ({ ...a, [key]: toggleSet(a[key], v, false) }))
+                  }
+                  className="press inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-card border border-border hover:bg-muted/40 text-muted-foreground hover:text-foreground"
+                  title={v}
+                >
+                  <span className="max-w-[160px] truncate">{v}</span>
+                  <X size={11} />
+                </button>
+              ))
+            )}
+            {appliedCount > 0 && (
+              <button
+                onClick={() => setApplied(emptyFilters())}
+                className="press text-[var(--color-teal)] hover:underline shrink-0 ml-auto"
+              >
+                Clear all
+              </button>
+            )}
+          </div>
         </div>
       )}
 
@@ -295,36 +366,54 @@ export function AttendeeList({ attendees, allTags }: AttendeeListProps) {
         )}
       </div>
 
-      {/* Filter Sheet */}
+      {/* Filter Sheet — side panel on desktop, full-width drawer on mobile */}
       <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
-        <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>Filters</SheetTitle>
+        <SheetContent
+          side="right"
+          className="w-full sm:max-w-md p-0 flex flex-col"
+        >
+          <SheetHeader className="px-5 pt-5 pb-3 border-b border-border/60 shrink-0">
+            <SheetTitle className="flex items-center justify-between gap-2">
+              <span>Filters</span>
+              {activeCount(draft) > 0 && (
+                <span className="text-xs font-medium text-[var(--color-teal)]">
+                  {activeCount(draft)} selected
+                </span>
+              )}
+            </SheetTitle>
           </SheetHeader>
 
-          <div className="mt-4 space-y-4">
-            {/* Priority */}
+          <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
+            {/* Priority — large chip toggles for fastest interaction */}
             {facets.priority.length > 0 && (
               <FilterSection
                 title="Priority"
                 count={draft.priority.size}
-                defaultOpen={draft.priority.size > 0 || facets.priority.length > 0}
+                defaultOpen
               >
-                <div className="space-y-0.5">
-                  {facets.priority.map(([p, count]) => (
-                    <label key={p} className="flex items-center gap-2 cursor-pointer py-1">
-                      <Checkbox
-                        checked={draft.priority.has(p)}
-                        onCheckedChange={(c) =>
-                          setDraft((d) => ({ ...d, priority: toggleSet(d.priority, p, !!c) }))
+                <div className="flex flex-wrap gap-1.5">
+                  {facets.priority.map(([p, count]) => {
+                    const selected = draft.priority.has(p)
+                    return (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() =>
+                          setDraft((d) => ({ ...d, priority: toggleSet(d.priority, p, !selected) }))
                         }
-                      />
-                      <span className="text-sm flex-1">
-                        {PRIORITY_LABELS[p]} <span className="text-xs text-muted-foreground">(P{p})</span>
-                      </span>
-                      <span className="text-xs text-muted-foreground tabular-nums">{count}</span>
-                    </label>
-                  ))}
+                        className={`press inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-medium transition-colors ${
+                          selected
+                            ? 'bg-[var(--color-teal)] text-white border-[var(--color-teal)]'
+                            : 'bg-card border-border hover:border-[var(--color-teal)]/40 hover:bg-muted/40'
+                        }`}
+                      >
+                        {PRIORITY_LABELS[p]}
+                        <span className={`tabular-nums text-[10px] ${selected ? 'opacity-80' : 'text-muted-foreground'}`}>
+                          {count}
+                        </span>
+                      </button>
+                    )
+                  })}
                 </div>
               </FilterSection>
             )}
@@ -392,17 +481,18 @@ export function AttendeeList({ attendees, allTags }: AttendeeListProps) {
             />
           </div>
 
-          <div className="mt-6 flex gap-2 sticky bottom-0 bg-background pt-3 border-t border-border">
+          <div className="flex gap-2 px-5 py-3 border-t border-border/60 bg-background shrink-0">
             <Button
-              variant="outline"
-              className="flex-1"
+              variant="ghost"
+              className="flex-1 text-muted-foreground"
               onClick={() => setDraft(emptyFilters())}
+              disabled={activeCount(draft) === 0}
             >
-              Clear all
+              Reset
             </Button>
             <Button
               variant="default"
-              className="flex-1"
+              className="flex-1 bg-[var(--color-teal)] hover:bg-[var(--color-teal-deep)]"
               onClick={() => {
                 setApplied(draft)
                 setFilterOpen(false)
@@ -436,17 +526,22 @@ function FilterSection({
   children: React.ReactNode
 }) {
   return (
-    <details className="border rounded-lg" open={defaultOpen}>
-      <summary className="px-3 py-2.5 cursor-pointer select-none flex items-center justify-between hover:bg-muted/30 rounded-lg">
-        <span className="text-sm font-medium">
+    <details className="rounded-lg bg-card border border-border/60 group" open={defaultOpen}>
+      <summary className="px-3.5 py-2.5 cursor-pointer select-none flex items-center justify-between hover:bg-muted/30 rounded-lg list-none [&::-webkit-details-marker]:hidden">
+        <span className="flex items-center gap-2 text-sm font-medium">
           {title}
           {count > 0 && (
-            <span className="ml-2 text-xs font-normal text-[var(--color-teal)]">({count})</span>
+            <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-[var(--color-teal)] text-white text-[10px] font-bold tabular-nums">
+              {count}
+            </span>
           )}
         </span>
-        <ChevronDown size={14} className="text-muted-foreground" />
+        <ChevronDown
+          size={14}
+          className="text-muted-foreground transition-transform duration-150 group-open:rotate-180"
+        />
       </summary>
-      <div className="px-3 pb-3 pt-1">{children}</div>
+      <div className="px-3.5 pb-3 pt-1 border-t border-border/40">{children}</div>
     </details>
   )
 }
