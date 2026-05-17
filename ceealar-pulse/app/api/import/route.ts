@@ -108,18 +108,41 @@ export async function POST(req: NextRequest) {
 
   const upsertRows: AttendeeRow[] = []
   let skipped = 0
+  const syntheticKeySeen = new Set<string>()
 
   for (const row of dataRows) {
     const swapcardUrl = sanitize(row[headerMap['Swapcard']])
-    if (!swapcardUrl) {
+    const firstName = sanitize(row[headerMap['First Name']])
+    const lastName = sanitize(row[headerMap['Last Name']])
+
+    let effectiveUrl: string
+    if (swapcardUrl) {
+      effectiveUrl = swapcardUrl
+    } else if (firstName || lastName) {
+      // Generate a deterministic synthetic key so re-imports update rather than duplicate
+      const slug = [firstName, lastName]
+        .filter(Boolean)
+        .join('-')
+        .toLowerCase()
+        .replace(/[^a-z0-9-]/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '')
+      let candidate = `synthetic://${slug}`
+      let suffix = 2
+      while (syntheticKeySeen.has(candidate)) {
+        candidate = `synthetic://${slug}-${suffix++}`
+      }
+      syntheticKeySeen.add(candidate)
+      effectiveUrl = candidate
+    } else {
       skipped++
       continue
     }
 
     upsertRows.push({
-      swapcard_url: swapcardUrl,
-      first_name: sanitize(row[headerMap['First Name']]),
-      last_name: sanitize(row[headerMap['Last Name']]),
+      swapcard_url: effectiveUrl,
+      first_name: firstName,
+      last_name: lastName,
       company: sanitize(row[headerMap['Company']]),
       job_title: sanitize(row[headerMap['Job Title']]),
       career_stage: sanitize(row[headerMap['Career Stage']]),
