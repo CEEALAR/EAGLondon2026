@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -33,10 +34,13 @@ export function ProfileDropdown({ user }: ProfileDropdownProps) {
     <DropdownMenu>
       <DropdownMenuTrigger className="press w-9 h-9 rounded-full overflow-hidden bg-muted flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-teal)] focus-visible:ring-offset-2 ring-1 ring-black/5 p-0 border-0 cursor-pointer shadow-sm hover:shadow-md transition-shadow">
         {user.avatar_url ? (
-          <img
+          <Image
             src={user.avatar_url}
             alt={user.display_name ?? user.email}
+            width={36}
+            height={36}
             className="w-full h-full object-cover"
+            unoptimized
           />
         ) : (
           <span className="text-sm font-semibold text-[var(--color-teal)]">

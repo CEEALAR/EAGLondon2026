@@ -5,20 +5,31 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 const EVENT_START = new Date('2026-05-29T09:00:00+01:00').getTime()
+const EVENT_END   = new Date('2026-05-31T18:00:00+01:00').getTime()
 
-function useCountdown(target: number) {
+type CountdownState =
+  | { phase: 'pre'; days: number; hours: number; minutes: number }
+  | { phase: 'live' }
+  | { phase: 'post' }
+
+function useCountdown(start: number, end: number): CountdownState | null {
   const [now, setNow] = useState<number | null>(null)
   useEffect(() => {
     setNow(Date.now())
-    const id = setInterval(() => setNow(Date.now()), 1000)
+    // Minute precision is plenty — saves 60× the renders compared to 1s.
+    const id = setInterval(() => setNow(Date.now()), 30_000)
     return () => clearInterval(id)
   }, [])
   if (now == null) return null
-  const diff = Math.max(0, target - now)
-  const days = Math.floor(diff / 86_400_000)
-  const hours = Math.floor((diff % 86_400_000) / 3_600_000)
-  const minutes = Math.floor((diff % 3_600_000) / 60_000)
-  return { days, hours, minutes, done: diff === 0 }
+  if (now >= end)  return { phase: 'post' }
+  if (now >= start) return { phase: 'live' }
+  const diff = start - now
+  return {
+    phase: 'pre',
+    days: Math.floor(diff / 86_400_000),
+    hours: Math.floor((diff % 86_400_000) / 3_600_000),
+    minutes: Math.floor((diff % 3_600_000) / 60_000),
+  }
 }
 
 function SignInContent() {
@@ -129,12 +140,19 @@ function SignInContent() {
 }
 
 function Countdown() {
-  const c = useCountdown(EVENT_START)
+  const c = useCountdown(EVENT_START, EVENT_END)
   if (!c) return <div className="h-[44px]" /> // reserve space pre-hydration
-  if (c.done) {
+  if (c.phase === 'live') {
     return (
       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-teal)]">
         EAG London 2026 · Live now
+      </p>
+    )
+  }
+  if (c.phase === 'post') {
+    return (
+      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+        EAG London 2026 · Sign in to wrap up notes
       </p>
     )
   }

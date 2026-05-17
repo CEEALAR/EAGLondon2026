@@ -5,6 +5,7 @@ import { TopNav } from '@/components/nav/top-nav'
 import { RealtimeProvider } from '@/components/realtime-provider'
 import { CalendarAutoSync } from '@/components/calendar-auto-sync'
 import { CalendarSetupBanner } from '@/components/calendar-setup-banner'
+import { OfflineBanner } from '@/components/offline-banner'
 import { Toaster } from '@/components/ui/sonner'
 import { getUnreadFeedCount } from '@/lib/unread-feed'
 
@@ -33,6 +34,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-screen bg-[var(--color-cream)]">
+      <OfflineBanner />
       <TopNav user={userForNav} unreadFeed={unreadFeed} />
       <main className="md:pt-14 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
         <CalendarSetupBanner userId={user.id} />

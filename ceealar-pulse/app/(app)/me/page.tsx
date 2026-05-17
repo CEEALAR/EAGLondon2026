@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import Image from 'next/image'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
@@ -130,7 +131,14 @@ export default async function MePage() {
       {/* Profile card */}
       <div className="border rounded-lg p-5 bg-card flex items-center gap-4">
         {avatarUrl ? (
-          <img src={avatarUrl} alt={name} className="w-14 h-14 rounded-full object-cover shrink-0" />
+          <Image
+            src={avatarUrl}
+            alt={name}
+            width={56}
+            height={56}
+            className="w-14 h-14 rounded-full object-cover shrink-0"
+            unoptimized
+          />
         ) : (
           <div className="w-14 h-14 rounded-full bg-[var(--color-teal)]/10 flex items-center justify-center shrink-0">
             <span className="text-xl font-semibold text-[var(--color-teal)]">{initial}</span>
@@ -175,7 +183,7 @@ export default async function MePage() {
       <div className="border rounded-lg p-4 bg-card space-y-3">
         <h2 className="text-base font-semibold">Action Items</h2>
         {actionItems.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No action items yet.</p>
+          <p className="text-sm text-muted-foreground">No action items yet — they show up here when someone tags one to you on a meeting.</p>
         ) : (
           <MyActionItems initialItems={actionItems} />
         )}
@@ -186,7 +194,7 @@ export default async function MePage() {
         <h2 className="text-base font-semibold">Want to Meet</h2>
         <p className="text-xs text-muted-foreground -mt-1">Assigned to you, no time set yet</p>
         {wantToMeets.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nothing here yet.</p>
+          <p className="text-sm text-muted-foreground">No want-to-meets yet — flag one from an attendee&apos;s page.</p>
         ) : (
           <ul className="space-y-2">
             {wantToMeets.map((m) => {

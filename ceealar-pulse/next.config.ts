@@ -12,6 +12,13 @@ const nextConfig: NextConfig = {
       static: 180,
     },
   },
+  images: {
+    // Google account avatars (signed in via OAuth). Allows next/image
+    // optimization on the avatar shown in TopNav and /me.
+    remotePatterns: [
+      { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
+    ],
+  },
 };
 
 export default nextConfig;

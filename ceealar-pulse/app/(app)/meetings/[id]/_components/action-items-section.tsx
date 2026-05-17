@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
 import { X } from 'lucide-react'
+import { toast } from 'sonner'
 import type { ActionItem } from '@/lib/types'
 
 interface ActionItemsSectionProps {
@@ -28,12 +29,13 @@ export function ActionItemsSection({ meetingId, initialItems }: ActionItemsSecti
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text }),
       })
-      if (res.ok) {
-        const item = await res.json() as ActionItem
-        setItems((prev) => [...prev, item])
-        setNewText('')
-        inputRef.current?.focus()
-      }
+      if (!res.ok) throw new Error(await res.text())
+      const item = await res.json() as ActionItem
+      setItems((prev) => [...prev, item])
+      setNewText('')
+      inputRef.current?.focus()
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Could not add action item')
     } finally {
       setAdding(false)
     }
@@ -41,23 +43,33 @@ export function ActionItemsSection({ meetingId, initialItems }: ActionItemsSecti
 
   async function handleToggle(item: ActionItem) {
     const newDone = !item.done
-    // Optimistic update
-    setItems((prev) =>
-      prev.map((i) => (i.id === item.id ? { ...i, done: newDone } : i))
-    )
-    await fetch(`/api/meetings/${meetingId}/action-items/${item.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ done: newDone }),
-    })
+    const prev = items
+    setItems((xs) => xs.map((i) => (i.id === item.id ? { ...i, done: newDone } : i)))
+    try {
+      const res = await fetch(`/api/meetings/${meetingId}/action-items/${item.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ done: newDone }),
+      })
+      if (!res.ok) throw new Error(await res.text())
+    } catch (e) {
+      setItems(prev)
+      toast.error(e instanceof Error ? e.message : 'Could not save')
+    }
   }
 
   async function handleDelete(itemId: string) {
-    // Optimistic remove
-    setItems((prev) => prev.filter((i) => i.id !== itemId))
-    await fetch(`/api/meetings/${meetingId}/action-items/${itemId}`, {
-      method: 'DELETE',
-    })
+    const prev = items
+    setItems((xs) => xs.filter((i) => i.id !== itemId))
+    try {
+      const res = await fetch(`/api/meetings/${meetingId}/action-items/${itemId}`, {
+        method: 'DELETE',
+      })
+      if (!res.ok) throw new Error(await res.text())
+    } catch (e) {
+      setItems(prev)
+      toast.error(e instanceof Error ? e.message : 'Could not delete')
+    }
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -70,7 +82,7 @@ export function ActionItemsSection({ meetingId, initialItems }: ActionItemsSecti
   return (
     <div className="space-y-3">
       {items.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No action items yet.</p>
+        <p className="text-sm text-muted-foreground">No action items yet — add one below.</p>
       ) : (
         <ul className="space-y-2">
           {items.map((item) => (

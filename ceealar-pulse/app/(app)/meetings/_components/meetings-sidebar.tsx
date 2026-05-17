@@ -14,6 +14,7 @@ type MeetingRaw = {
   id: string
   status: string
   scheduled_at: string
+  duration_minutes: number | null
   location: string | null
   owner_id: string | null
   attendees: { first_name: string | null; last_name: string | null } | null
@@ -33,7 +34,7 @@ export async function MeetingsSidebar() {
     ] = await Promise.all([
       supabase
         .from('meetings')
-        .select('id, status, scheduled_at, location, owner_id, attendees(first_name, last_name), meeting_members(user_id, team_members!meeting_members_user_id_fkey(display_name, email))')
+        .select('id, status, scheduled_at, duration_minutes, location, owner_id, attendees(first_name, last_name), meeting_members(user_id, team_members!meeting_members_user_id_fkey(display_name, email))')
         .not('scheduled_at', 'is', null)
         .gte('scheduled_at', '2026-05-29T00:00:00+00:00')
         .lte('scheduled_at', '2026-05-31T23:59:59+00:00')
@@ -62,6 +63,7 @@ export async function MeetingsSidebar() {
         id: m.id,
         status: m.status as MeetingStatus,
         scheduled_at: m.scheduled_at,
+        duration_minutes: m.duration_minutes,
         location: m.location,
         owner_id: m.owner_id,
         attendee_name:

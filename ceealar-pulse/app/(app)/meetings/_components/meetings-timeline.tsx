@@ -9,11 +9,14 @@ export type TimelineMeeting = {
   id: string
   status: MeetingStatus
   scheduled_at: string
+  duration_minutes: number | null
   location: string | null
   owner_id: string | null
   attendee_name: string
   assignees: Array<{ user_id: string; display_name: string | null }>
 }
+
+const DEFAULT_MEETING_MIN = 30
 
 interface MeetingsTimelineProps {
   meetings: TimelineMeeting[]
@@ -177,7 +180,7 @@ function findFreeSlots(
     if (!m.scheduled_at.startsWith(day)) continue
     if (m.status === 'cancelled' || m.status === 'no_show') continue
     const s = parseISO(m.scheduled_at).getTime()
-    const dur = 30 * 60_000 // we assume 30-min meetings — duration_minutes isn't in TimelineMeeting
+    const dur = (m.duration_minutes ?? DEFAULT_MEETING_MIN) * 60_000
     busy.push([s, s + dur])
   }
   busy.sort((a, b) => a[0] - b[0])
@@ -396,7 +399,7 @@ export function MeetingsTimeline({ meetings, teamMembers }: MeetingsTimelineProp
     return map
   }, [meetings, teamMembers])
 
-  const dayData = grouped[selectedDay] ?? {}
+  const dayData = useMemo(() => grouped[selectedDay] ?? {}, [grouped, selectedDay])
   const dayMeetings = useMemo(
     () => Object.values(dayData).flat() as TimelineMeeting[],
     [dayData]
