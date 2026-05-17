@@ -33,7 +33,7 @@ export async function MeetingsSidebar() {
     ] = await Promise.all([
       supabase
         .from('meetings')
-        .select('id, status, scheduled_at, location, owner_id, attendees(first_name, last_name), meeting_members(user_id, team_members(display_name, email))')
+        .select('id, status, scheduled_at, location, owner_id, attendees(first_name, last_name), meeting_members(user_id, team_members!meeting_members_user_id_fkey(display_name, email))')
         .not('scheduled_at', 'is', null)
         .gte('scheduled_at', '2026-05-29T00:00:00+00:00')
         .lte('scheduled_at', '2026-05-31T23:59:59+00:00')

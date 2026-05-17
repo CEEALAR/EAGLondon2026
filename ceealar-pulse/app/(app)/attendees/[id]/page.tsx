@@ -59,7 +59,7 @@ export default async function AttendeeDetailPage(props: { params: Promise<{ id: 
     supabase.from('team_members').select('*').order('display_name'),
     supabase
       .from('meetings')
-      .select('id, status, scheduled_at, location, owner_id, team_members(display_name), meeting_members(user_id, team_members(display_name, email))')
+      .select('id, status, scheduled_at, location, owner_id, team_members!meetings_owner_id_fkey(display_name), meeting_members(user_id, team_members!meeting_members_user_id_fkey(display_name, email))')
       .eq('attendee_id', id)
       .order('created_at', { ascending: false }),
   ])

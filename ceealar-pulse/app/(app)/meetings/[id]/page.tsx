@@ -76,7 +76,7 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
       .select('id, display_name, email'),
     supabase
       .from('meeting_members')
-      .select('user_id, team_members(display_name, email)')
+      .select('user_id, team_members!meeting_members_user_id_fkey(display_name, email)')
       .eq('meeting_id', id),
   ])
 
