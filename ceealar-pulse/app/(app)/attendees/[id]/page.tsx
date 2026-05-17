@@ -4,7 +4,7 @@ import { ExternalLink } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { createClient } from '@/lib/supabase/server'
 import { StrategicContextForm } from '@/app/(app)/attendees/_components/strategic-context-form'
-import { MeetingCreateDialog } from '@/app/(app)/attendees/_components/meeting-create-dialog'
+import { AttendeeActions } from '@/app/(app)/attendees/_components/attendee-actions'
 import { AssignColleagueButton } from '@/app/(app)/attendees/_components/assign-colleague-button'
 import { PriorityBadge } from '@/components/priority-badge'
 import type { TeamMember, MeetingStatus } from '@/lib/types'
@@ -91,14 +91,6 @@ export default async function AttendeeDetailPage(props: { params: Promise<{ id: 
     ),
   ]
 
-  const wantToMeetOwners = [
-    ...new Set(
-      meetings
-        .filter((m) => m.status === 'want_to_meet' && m.owner_id !== user?.id)
-        .map((m) => m.team_members?.display_name ?? 'Someone')
-    ),
-  ]
-
   return (
     <div className="max-w-2xl mx-auto md:mx-0 px-4 md:px-6 py-6 space-y-8">
       {/* Back navigation — only on mobile where the sidebar isn't visible */}
@@ -141,12 +133,10 @@ export default async function AttendeeDetailPage(props: { params: Promise<{ id: 
         )}
         <div className="pt-2 flex flex-wrap gap-2">
           {user && (
-            <MeetingCreateDialog
+            <AttendeeActions
               attendeeId={attendee.id}
-              attendeeName={fullName}
+              swapcardUrl={attendee.swapcard_url}
               currentUserId={user.id}
-              teamMembers={teamMembers}
-              wantToMeetOwners={wantToMeetOwners}
             />
           )}
           {user && (

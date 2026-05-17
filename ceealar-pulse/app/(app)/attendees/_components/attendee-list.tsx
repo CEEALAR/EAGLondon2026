@@ -203,6 +203,19 @@ export function AttendeeList({ attendees, allTags }: AttendeeListProps) {
     overscan: 10,
   })
 
+  // Force re-measurement when the scroll container resizes (mobile keyboard
+  // appearing/disappearing, orientation change, etc.) AND on initial mount.
+  // Without this, the virtualizer occasionally reads height 0 on first paint
+  // on mobile and renders no rows even when `filtered` has items.
+  useEffect(() => {
+    const node = parentRef.current
+    if (!node) return
+    virtualizer.measure()
+    const ro = new ResizeObserver(() => virtualizer.measure())
+    ro.observe(node)
+    return () => ro.disconnect()
+  }, [virtualizer])
+
   const appliedCount = activeCount(applied)
 
   return (
@@ -378,6 +391,19 @@ export function AttendeeList({ attendees, allTags }: AttendeeListProps) {
                   : 'Import the Swapcard XLSX from the Admin page to get started.'}
               </p>
             </div>
+          </div>
+        ) : virtualizer.getVirtualItems().length === 0 ? (
+          // Virtualizer hasn't measured yet (or container is hidden) —
+          // render up to 20 rows in normal flow so the user always sees results.
+          // Once the virtualizer measures, it takes over via the branch below.
+          <div className="relative w-full">
+            {filtered.slice(0, 20).map((a) => (
+              <AttendeeRow
+                key={a.id}
+                attendee={a}
+                style={{ position: 'relative', width: '100%', height: '72px' }}
+              />
+            ))}
           </div>
         ) : (
           <div style={{ height: virtualizer.getTotalSize() }} className="relative w-full">

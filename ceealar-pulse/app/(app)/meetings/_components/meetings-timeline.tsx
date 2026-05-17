@@ -346,6 +346,16 @@ export function MeetingsTimeline({ meetings, teamMembers }: MeetingsTimelineProp
   const containerRef = useRef<HTMLDivElement>(null)
   const [hourHeight, setHourHeight] = useState(MAX_HOUR_HEIGHT)
 
+  // Guard against stale/empty selectedMemberId — e.g. when teamMembers loads
+  // asynchronously, or when the user comes back to Per Person from another
+  // view and their previous selection was cleared.
+  useEffect(() => {
+    if (!selectedMemberId || !teamMembers.some((m) => m.id === selectedMemberId)) {
+      const fallback = teamMembers[0]?.id
+      if (fallback) setSelectedMemberId(fallback)
+    }
+  }, [teamMembers, selectedMemberId])
+
   useEffect(() => {
     function recompute() {
       const isDesktop = window.matchMedia('(min-width: 768px)').matches
@@ -388,43 +398,42 @@ export function MeetingsTimeline({ meetings, teamMembers }: MeetingsTimelineProp
 
   return (
     <div>
-      {/* Top row: day tabs + view-mode toggle */}
-      <div className="flex flex-wrap items-center gap-3 mb-4">
-        <div className="inline-flex p-1 rounded-full bg-muted/50 gap-0.5">
-          {CONF_DAYS.map((day) => (
-            <button
-              key={day.value}
-              onClick={() => setSelectedDay(day.value)}
-              className={`press px-4 py-1.5 text-sm font-medium rounded-full transition-all duration-200 ${
-                selectedDay === day.value
-                  ? 'bg-white text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {day.label}
-            </button>
-          ))}
-        </div>
+      {/* Day tabs */}
+      <div className="inline-flex p-1 rounded-full bg-muted/50 gap-0.5 mb-3">
+        {CONF_DAYS.map((day) => (
+          <button
+            key={day.value}
+            onClick={() => setSelectedDay(day.value)}
+            className={`press px-4 py-1.5 text-sm font-medium rounded-full transition-all duration-200 ${
+              selectedDay === day.value
+                ? 'bg-white text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {day.label}
+          </button>
+        ))}
+      </div>
 
-        <div className="inline-flex p-1 rounded-full bg-muted/50 gap-0.5 ml-auto">
-          {([
-            ['per-person', 'Per person'],
-            ['overlay', 'Overlay'],
-            ['find-time', 'Find time'],
-          ] as const).map(([mode, label]) => (
-            <button
-              key={mode}
-              onClick={() => setViewMode(mode)}
-              className={`press px-3 py-1.5 text-xs font-medium rounded-full transition-all duration-200 ${
-                viewMode === mode
-                  ? 'bg-white text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+      {/* View-mode toggle — its own row so it doesn't fight day tabs on mobile */}
+      <div className="flex p-1 rounded-full bg-muted/50 gap-0.5 mb-4 w-full md:inline-flex md:w-auto">
+        {([
+          ['per-person', 'Per person'],
+          ['overlay', 'Overlay'],
+          ['find-time', 'Find time'],
+        ] as const).map(([mode, label]) => (
+          <button
+            key={mode}
+            onClick={() => setViewMode(mode)}
+            className={`press flex-1 md:flex-initial px-3 py-1.5 text-xs font-medium rounded-full transition-all duration-200 ${
+              viewMode === mode
+                ? 'bg-white text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       {/* Owner legend — shown for overlay mode */}
