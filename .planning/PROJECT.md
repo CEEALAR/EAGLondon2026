@@ -75,9 +75,15 @@ Brand: DM Sans body, Playfair Display italic for one accent per screen, teal-700
 | Supabase client directly (no ORM) | Brief explicitly forbids Prisma; keeps bundle small | — Pending |
 | Hard-code 4 user emails if needed | Faster than building invite flow for known users | — Pending |
 | TanStack Virtual for attendee list | 1,904 rows would destroy DOM performance without virtualization | — Pending |
-| `meetings_view` Postgres view for prep_note RLS | Simplest way to hide private field without complex RLS policies | — Pending |
+| ~~`meetings_view` Postgres view for prep_note RLS~~ | ~~Simplest way to hide private field without complex RLS policies~~ | **Dropped in migration 0010 (Phase 10)** — prep_note column + view both removed once UI stopped surfacing the field |
 | Owner-only `update`/`delete` on meetings/action_items | Brief specifies; status field team-editable as exception | — Pending |
 | Zod for form validation (optional) | Claude's call — use if it speeds up forms, otherwise HTML constraints | — Pending |
+| Service-role admin client for all writes, anon (RLS) for reads | Phase 3 pattern, audited Phase 10; not centralised because call sites are audited and centralising provides no security delta | Active (Phase 10) |
+| `activity` table records audit trail for sensitive mutations | Phase 10 — actions: `meeting_created`, `status_done`, `action_item_added`, `action_item_completed`, `priority_changed`, `tag_added`, `tag_removed`. Future attendee-mutation routes MUST follow the same pattern: read previous → write → append `activity` row with `actor_id`, `attendee_id`, descriptive `action`, `detail` JSON | Active (Phase 10) |
+| `safeHttpUrl()` from `lib/utils.ts` is the only allowed render path for attendee-controlled links | Phase 10 — `attendee.linkedin` / `attendee.swapcard_url` are partially attendee-controlled via Swapcard; raw render allowed `javascript:` URI XSS | Active (Phase 10) |
+| Server-side fetch of user-supplied URLs requires the SSRF playbook | Phase 10 — `new URL()` parse, hostname allowlist, `redirect: 'manual'`, response size cap. Reference impl: `lib/ical-sync.ts` `fetchICalText()` | Active (Phase 10) |
+| Security headers (CSP + friends) live in `middleware.ts` `applySecurityHeaders()` | Phase 10 — applied to every response including redirects. CSP allows `'unsafe-inline'` for script/style because Next.js needs it; real defence is `object-src 'none'`, `frame-ancestors 'none'`, `base-uri 'self'`, `connect-src` locked to Supabase host | Active (Phase 10) |
+| `xlsx@0.18.5` known-CVE package retained until post-conference | Auth-gated to 4 trusted users; replacement is behaviour-change in import path — too risky pre-conference. **Replace post-2026-05-31** with SheetJS CDN build or `exceljs` | Active (Phase 10) |
 
 ## Evolution
 
@@ -97,4 +103,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-14 after initialization*
+*Last updated: 2026-05-17 after Phase 10 (admin overhaul + security pass)*

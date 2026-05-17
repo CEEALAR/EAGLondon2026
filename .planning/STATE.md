@@ -5,29 +5,44 @@
 See: `.planning/PROJECT.md` (updated 2026-05-14)
 
 **Core value:** Four CEEALAR team members can find, tag, schedule, and debrief any of 1,904 attendees from their phones with one hand while walking between sessions — no spreadsheet required.
-**Current focus:** Phase 4 — Tags + Filters
+**Current focus:** Live — conference 29–31 May 2026.
 
 ## Current Phase
 
-**Phase 8: Ship + Verify**
-- Status: Complete ✓
-- Goal: Production smoke test on real phones, README, four-team sign-off
-- SHIP-01 ✓ Phone sign-in verified (2026-05-17)
-- SHIP-02 ✓ Non-@ceealar.org rejection verified (2026-05-17)
-- SHIP-03 ✓ Full smoke test passed: import → search → tag → schedule → notes → action items → done → export (2026-05-17)
-- SHIP-04 ✓ README.md committed and pushed (2026-05-17)
+**Phase 10: Admin Overhaul + Security Pass**
+- Status: Complete ✓ (shipped 2026-05-17)
+- Summary: `.planning/phases/10-admin-and-security/10-SUMMARY.md`
+- Commits: d86ad43, 760d112, 9372569, cae3ac7
+- Headline shipped:
+  - **Admin** — per-person load, priority/category coverage, P5/P4 gaps list, oldest want-to-meets, calendar sync health, force-sync-all button
+  - **Priority editor** — clickable inline popover on attendee + meeting detail
+  - **Security** — auth-callback hardening, SSRF defences on iCal fetch, safeHttpUrl() filter on user-controlled links, audit-trail rows on priority/tag mutations, XLSX upload size/row caps, CSP + security headers via middleware, prep_note column dropped (migration 0010)
+- Operational items confirmed done by user:
+  - Migration 0010 applied in Supabase ✓
+  - MFA enabled on all 4 Google accounts ✓
+  - RLS verified on every table in Supabase Table Editor ✓
+  - SUPABASE_SERVICE_ROLE_KEY isolated to Vercel env ✓
+- Deferred / accepted (see SUMMARY for rationale):
+  - H-2 admin role split (4 trusted users — not needed)
+  - H-3 owner_id transfer in PATCH /api/meetings/[id] (accepted)
+  - M-1 raw DB error messages (low value internal)
+  - M-3 centralize service-role admin client (no security delta)
+  - xlsx@0.18.5 known CVEs — auth-gated to 4 users; **replace after conference**
 
 **Phase 9: Calendar Integration**
 - Status: Implemented, awaiting human setup + UAT
 - Goal: Per-user Swapcard iCal sync — auto-import "Meet *" events as planned meetings, calendar wins on time, Pulse owns notes/status
 - Spec: ROADMAP.md → Phase 9
 - Decisions: .planning/notes/icalendar-sync-decisions.md
-- Build: passes clean, pushed (commit fcd5364)
 - Pending human steps:
   1. Run supabase/migrations/0005_ical_sync.sql in Supabase SQL editor
   2. Add CRON_SECRET env var in Vercel (any random string, used by cron endpoint)
   3. Connect iCal URL via /me → Calendar → 3-step guide
   4. Verify auto-sync (5 min cron) and manual "Sync now" both work
+
+**Phase 8: Ship + Verify**
+- Status: Complete ✓
+- All four SHIP requirements signed off 2026-05-17.
 
 ## Phase History
 
@@ -43,14 +58,15 @@ See: `.planning/PROJECT.md` (updated 2026-05-14)
 | Phase 7: Export + Polish | Complete ✓ | 2026-05-15 |
 | Phase 8: Ship + Verify | Complete ✓ | 2026-05-17 |
 | Phase 9: Calendar Integration | Spec'd | — |
+| Phase 10: Admin + Security | Complete ✓ | 2026-05-17 |
 
 ## Blocked On
 
-Nothing — Phase 3 complete (pending UAT), proceeding to Phase 4.
+Nothing.
 
-## Pending User Actions (before Phase 4)
+## Pending User Actions
 
-Nothing — ready to plan Phase 4.
+- **After conference (post-2026-05-31):** Replace `xlsx@0.18.5` (npm package abandoned; SheetJS CDN tarball or `exceljs` are the maintained options). Test the import path end-to-end since this is a behaviour-changing dep swap.
 
 ## Live URLs
 
@@ -104,3 +120,4 @@ Google OAuth configured in Supabase Auth dashboard (not env vars).
 *State initialized: 2026-05-14*
 *Last session: 2026-05-15 — Completed Phase 7 (Export + Polish) with UAT approval. CSV export at /admin/export (27 columns, ~1904 rows), PWA manifest + teal icons, NotificationProvider with opt-in banner (Chrome requires user gesture), skeleton loading.tsx for all routes, empty states with helpful copy.*
 *Session 2026-05-17 — Phase 8 complete. Fixed broken lightningcss native binary (npm install). Build passes clean. Wrote production README.md. All four SHIP requirements verified by Attila: phone sign-in, domain rejection, full smoke test (import→export), README pushed. v1.0 milestone DONE — all 9 phases complete, all 57 requirements met.*
+*Session 2026-05-17 (afternoon) — Phase 10 shipped (commits d86ad43, 760d112, 9372569, cae3ac7). (1) Admin page overhauled with per-person load bars, priority/category coverage progress bars, P5/P4 gaps list, oldest want-to-meets, calendar sync health, and a force-sync-all button (new endpoint POST /api/admin/sync-all, new helper lib/admin-stats.ts). (2) Inline priority editor (components/priority-editor.tsx + PATCH /api/attendees/[id]/priority) on attendee and meeting detail pages. (3) Full security review by Security Engineer agent — shipped C-1 auth callback hardening, C-2 SSRF defences in lib/ical-sync.ts (URL parse + host allowlist + redirect:'manual' + size cap), M-2 safeHttpUrl() filter in lib/utils.ts applied to all attendee link sites, H-1 audit log rows on priority/tag mutations (activity table actions: priority_changed/tag_added/tag_removed), H-4 scrubbed sync-all error details, M-4 25MB/5000-row XLSX upload caps. (4) CSP + security headers via middleware.ts. (5) Migration 0010 drops meetings.prep_note column + meetings_view (applied by user). Operational: user confirmed MFA on all 4 Google accounts, RLS enabled on every table, service-role key isolated to Vercel. Deferred items (H-2/H-3/M-1/M-3 accepted; xlsx@0.18.5 replacement scheduled post-conference). See .planning/phases/10-admin-and-security/10-SUMMARY.md for full handoff details.*
