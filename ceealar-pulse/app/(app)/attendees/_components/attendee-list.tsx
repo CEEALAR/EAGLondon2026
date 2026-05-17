@@ -8,8 +8,15 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
-import { SlidersHorizontal, X, ChevronDown, Search } from 'lucide-react'
+import { SlidersHorizontal, X, ChevronDown, Search, ArrowUpDown } from 'lucide-react'
 import { PRIORITY_LABELS } from '@/components/priority-badge'
+
+type SortMode = 'name' | 'priority'
+
+const SORT_LABEL: Record<SortMode, string> = {
+  name: 'A → Z',
+  priority: 'Priority',
+}
 
 interface AttendeeListProps {
   attendees: Attendee[]
@@ -54,6 +61,7 @@ export function AttendeeList({ attendees, allTags }: AttendeeListProps) {
   const [filterOpen, setFilterOpen] = useState(false)
   const [draft, setDraft] = useState<FilterState>(emptyFilters())
   const [applied, setApplied] = useState<FilterState>(emptyFilters())
+  const [sortMode, setSortMode] = useState<SortMode>('name')
   const searchInputRef = useRef<HTMLInputElement>(null)
 
   // ⌘K / Ctrl-K focuses the search bar from anywhere on /attendees
@@ -172,8 +180,20 @@ export function AttendeeList({ attendees, allTags }: AttendeeListProps) {
       result = result.filter((a) => typeof a.seeking_work === 'string' && applied.seekingWork.has(a.seeking_work))
     }
 
+    if (sortMode === 'priority') {
+      // Highest priority first (5 → 1), then unprioritized (null) by name.
+      result = [...result].sort((a, b) => {
+        const pa = typeof a.priority === 'number' ? a.priority : -1
+        const pb = typeof b.priority === 'number' ? b.priority : -1
+        if (pa !== pb) return pb - pa
+        const an = `${a.last_name ?? ''} ${a.first_name ?? ''}`.toLowerCase()
+        const bn = `${b.last_name ?? ''} ${b.first_name ?? ''}`.toLowerCase()
+        return an.localeCompare(bn)
+      })
+    }
+
     return result
-  }, [attendees, debouncedQuery, applied])
+  }, [attendees, debouncedQuery, applied, sortMode])
 
   const parentRef = useRef<HTMLDivElement>(null)
   const virtualizer = useVirtualizer({
@@ -221,6 +241,19 @@ export function AttendeeList({ attendees, allTags }: AttendeeListProps) {
             </kbd>
           )}
         </div>
+        <button
+          onClick={() => setSortMode((m) => (m === 'name' ? 'priority' : 'name'))}
+          aria-label={`Sort: ${SORT_LABEL[sortMode]}. Click to change.`}
+          title={`Sort: ${SORT_LABEL[sortMode]}`}
+          className={`press h-10 px-3 rounded-full flex items-center gap-1.5 transition-all text-xs font-medium ${
+            sortMode === 'priority'
+              ? 'bg-[var(--color-teal)]/10 text-[var(--color-teal)] border border-[var(--color-teal)]/30'
+              : 'bg-card/60 border border-border/60 text-muted-foreground hover:text-foreground hover:bg-card/90'
+          }`}
+        >
+          <ArrowUpDown size={13} strokeWidth={2.2} />
+          <span className="hidden sm:inline">{SORT_LABEL[sortMode]}</span>
+        </button>
         <button
           onClick={() => {
             setDraft({
