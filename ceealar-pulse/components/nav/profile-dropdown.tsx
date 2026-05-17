@@ -8,8 +8,6 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu'
 import { useRouter } from 'next/navigation'
-import { useTheme } from 'next-themes'
-import { Moon, Sun, Monitor } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 interface ProfileDropdownProps {
@@ -22,7 +20,6 @@ interface ProfileDropdownProps {
 
 export function ProfileDropdown({ user }: ProfileDropdownProps) {
   const router = useRouter()
-  const { theme, setTheme } = useTheme()
 
   const handleSignOut = async () => {
     const supabase = createClient()
@@ -31,14 +28,6 @@ export function ProfileDropdown({ user }: ProfileDropdownProps) {
   }
 
   const initial = user.display_name?.[0] ?? user.email[0] ?? '?'
-
-  function cycleTheme() {
-    const next = theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light'
-    setTheme(next)
-  }
-
-  const themeLabel = theme === 'light' ? 'Light' : theme === 'dark' ? 'Dark' : 'System'
-  const ThemeIcon = theme === 'light' ? Sun : theme === 'dark' ? Moon : Monitor
 
   return (
     <DropdownMenu>
@@ -63,13 +52,6 @@ export function ProfileDropdown({ user }: ProfileDropdownProps) {
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => router.push('/admin')}>
           Admin
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={cycleTheme} className="flex items-center justify-between gap-2">
-          <span className="flex items-center gap-2">
-            <ThemeIcon size={14} />
-            Theme
-          </span>
-          <span className="text-xs text-muted-foreground">{themeLabel}</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
