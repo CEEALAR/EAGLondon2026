@@ -22,6 +22,7 @@ key_files:
     - ceealar-pulse/components/priority-editor.tsx
     - ceealar-pulse/app/api/attendees/[id]/priority/route.ts
     - ceealar-pulse/supabase/migrations/0010_drop_prep_note.sql
+    - .github/workflows/check.yml
   modified:
     - ceealar-pulse/app/(app)/admin/page.tsx
     - ceealar-pulse/app/(app)/attendees/[id]/page.tsx
@@ -35,11 +36,13 @@ key_files:
     - ceealar-pulse/app/api/import/priority/route.ts
     - ceealar-pulse/app/api/attendees/[id]/tags/route.ts
     - ceealar-pulse/app/api/attendees/[id]/tags/[tagId]/route.ts
+    - ceealar-pulse/package.json
 commits:
   - d86ad43 "admin: operational stats, gaps list, sync health, force-sync-all"
   - 760d112 "attendees: inline priority editor on attendee and meeting pages"
   - 9372569 "security: harden auth callback, SSRF, link rendering, audit log, upload caps"
   - cae3ac7 "security: add CSP + security headers, drop unused prep_note column"
+  - cc36308 "ci: add GitHub Actions check workflow + npm run check script"
 metrics:
   completed: "2026-05-17"
   duration: "~3 h working session"
@@ -52,11 +55,12 @@ metrics:
 
 ## Summary
 
-Three logical chunks shipped in one continuous session, all on `main`:
+Four logical chunks shipped in one continuous session, all on `main`:
 
 1. **Admin page overhaul** — per-person meeting load, priority/category coverage, gaps list, oldest want-to-meets, calendar sync health, force-sync-all button.
 2. **Inline priority editor** — clickable priority badge on attendee + meeting detail pages with popover picker, optimistic update, toast feedback.
 3. **Security review + fixes** — see `Security Posture` section.
+4. **CI guard rail** — GitHub Actions workflow + `npm run check` script. See `Testing & CI` section.
 
 ---
 
@@ -180,6 +184,39 @@ The feed page (`/feed`) doesn't currently render `priority_changed` / `tag_added
 
 ---
 
+## 4. Testing & CI (commit cc36308)
+
+### What exists today
+
+- **GitHub Actions workflow** at `.github/workflows/check.yml`. Triggers on push and PR to `main`. Runs `typecheck + lint + build` against Node 22. Uses placeholder Supabase env vars (`NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY`) — both are public-by-design; service-role key is deliberately omitted from CI so a workflow exploit can't exfiltrate it. Status appears as ✓/✗ next to each commit on github.com.
+- **`npm run check` script** in `ceealar-pulse/package.json`. Local equivalent of the CI chain: `tsc --noEmit && eslint && next build`. Also added `npm run typecheck` for the fast TS-only check.
+
+### Deliberately NOT shipped (deferred to post-conference 2026-05-31)
+
+- **No unit test framework yet.** Decision: pre-conference, the risk of churn from bootstrapping Vitest > value of tests written in haste. The build/typecheck/lint chain catches the regressions that actually matter at this scale (type errors, unused imports, broken builds).
+- **No E2E (Playwright) tests.** Would require a test Supabase project, seeded data, auth-bypass for CI — multi-day setup. Not justified for 4 users on a 3-day event.
+
+### Post-conference plan (recommended next session)
+
+Add **Vitest** with unit tests on pure-logic libs only — these have real branching logic and zero external deps so the test ergonomics are best:
+
+| Lib | Why test |
+|---|---|
+| `lib/utils.ts` `safeHttpUrl()` | Security-critical. Table-driven test: every protocol variant, malformed URLs, edge cases (`javascript:`, `data:`, `file:`, userinfo tricks). |
+| `lib/ical-parser.ts` | Parser invariants — line folding, escape sequences, VEVENT extraction, malformed input handling. |
+| `lib/ical-sync.ts` `matchAttendees()` | First-then-last-name matching tiebreaker is subtle (handles "Sasha" vs "Steve Thompson" vs "Steve Smith"). |
+| `lib/admin-stats.ts` | Aggregation correctness — per-person load math, gaps list filter, coverage percentages, cancelled-meeting exclusion. |
+
+Wiring: `npm i -D vitest @vitest/coverage-v8`, add `"test": "vitest run"` to scripts, add `npm test` to the `check` script chain, and CI picks it up automatically (no `.github` changes needed).
+
+**Don't test:** React components (App Router server components are awkward to test with testing-library; bugs there are caught faster by clicking), API routes (need Supabase mocks — heavy lift, low ROI), DB-touching helpers (same).
+
+### Deploy posture
+
+CI ≠ deploy gate. Vercel deploys independently on every push to `main`, regardless of CI status. For a 4-user team, branch-protecting `main` is overkill. The discipline is: **push → watch the green tick on github.com → if red, fix forward and redeploy.** A bad commit reaches production for the few minutes between push and your fix-forward.
+
+If this becomes a problem post-conference, the cheapest fix is GitHub branch protection ("require CI to pass before merging") combined with a `develop`-style branch workflow — but that's overkill today.
+
 ## How a future session should pick up
 
 1. **Skim** `.planning/STATE.md` first — has the always-current session log.
@@ -189,3 +226,5 @@ The feed page (`/feed`) doesn't currently render `priority_changed` / `tag_added
 5. **For new attendee-controlled link rendering**: use `safeHttpUrl()` from `lib/utils.ts`. Never render `<a href={attendee.someUserField}>` directly.
 6. **For new headers/CSP changes**: edit `applySecurityHeaders()` in `middleware.ts`. It runs on every response.
 7. **For new SQL**: next migration number is `0011_`. Apply via Supabase SQL Editor (no `supabase db push` in this project's workflow).
+8. **Before pushing**: run `cd ceealar-pulse && npm run check` locally. Same chain runs in CI on every push (`.github/workflows/check.yml`); watch for the ✓/✗ on github.com after pushing.
+9. **For adding tests** (post-conference): start with Vitest unit tests on `lib/utils.ts`, `lib/ical-parser.ts`, `lib/ical-sync.ts` `matchAttendees()`, and `lib/admin-stats.ts` — the four pure-logic libs. Skip component/E2E tests at current scale.

@@ -12,11 +12,12 @@ See: `.planning/PROJECT.md` (updated 2026-05-14)
 **Phase 10: Admin Overhaul + Security Pass**
 - Status: Complete ✓ (shipped 2026-05-17)
 - Summary: `.planning/phases/10-admin-and-security/10-SUMMARY.md`
-- Commits: d86ad43, 760d112, 9372569, cae3ac7
+- Commits: d86ad43, 760d112, 9372569, cae3ac7, cc36308
 - Headline shipped:
   - **Admin** — per-person load, priority/category coverage, P5/P4 gaps list, oldest want-to-meets, calendar sync health, force-sync-all button
   - **Priority editor** — clickable inline popover on attendee + meeting detail
   - **Security** — auth-callback hardening, SSRF defences on iCal fetch, safeHttpUrl() filter on user-controlled links, audit-trail rows on priority/tag mutations, XLSX upload size/row caps, CSP + security headers via middleware, prep_note column dropped (migration 0010)
+  - **CI** — `.github/workflows/check.yml` runs typecheck + lint + build on every push to `main`; `npm run check` is the local equivalent. No unit tests yet (Vitest deferred to post-conference).
 - Operational items confirmed done by user:
   - Migration 0010 applied in Supabase ✓
   - MFA enabled on all 4 Google accounts ✓
@@ -66,7 +67,9 @@ Nothing.
 
 ## Pending User Actions
 
-- **After conference (post-2026-05-31):** Replace `xlsx@0.18.5` (npm package abandoned; SheetJS CDN tarball or `exceljs` are the maintained options). Test the import path end-to-end since this is a behaviour-changing dep swap.
+- **After conference (post-2026-05-31):**
+  - Replace `xlsx@0.18.5` (npm package abandoned; SheetJS CDN tarball or `exceljs` are the maintained options). Test the import path end-to-end since this is a behaviour-changing dep swap.
+  - Add Vitest unit tests on `lib/utils.ts`, `lib/ical-parser.ts`, `lib/ical-sync.ts` `matchAttendees()`, `lib/admin-stats.ts`. ~15-20 tests, half a day. Wire `vitest run` into `npm run check`. Plan documented in `.planning/phases/10-admin-and-security/10-SUMMARY.md` § Testing & CI.
 
 ## Live URLs
 
