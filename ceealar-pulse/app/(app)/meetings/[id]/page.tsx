@@ -84,12 +84,20 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
   }
   if (!meetingRaw) notFound()
 
-  // Fetch the full attendee profile to render under the meeting info
-  const { data: attendee } = await supabase
-    .from('attendees')
-    .select('company, job_title, biography, expertise, interests, how_others_can_help, how_i_can_help, country, career_stage, seeking_work, recruitment, swapcard_url, linkedin')
-    .eq('id', (meetingRaw as { attendee_id: string }).attendee_id)
-    .maybeSingle()
+  // Fetch the full attendee profile + tag assignments to render under the meeting info
+  const attendeeId = (meetingRaw as { attendee_id: string }).attendee_id
+  const [{ data: attendee }, { data: attendeeTagRows }, { data: allTagsData }] = await Promise.all([
+    supabase
+      .from('attendees')
+      .select('company, job_title, biography, expertise, interests, how_others_can_help, how_i_can_help, country, career_stage, seeking_work, recruitment, swapcard_url, linkedin')
+      .eq('id', attendeeId)
+      .maybeSingle(),
+    supabase.from('attendee_tags').select('tag_id').eq('attendee_id', attendeeId),
+    supabase.from('tags').select('id, name, color').order('name'),
+  ])
+
+  const assignedTagIds = new Set(((attendeeTagRows ?? []) as Array<{ tag_id: string }>).map((r) => r.tag_id))
+  const assignedTags = (((allTagsData ?? []) as Array<{ id: string; name: string; color: string }>)).filter((t) => assignedTagIds.has(t.id))
 
   const meeting = meetingRaw as unknown as MeetingRow
   const actionItems: ActionItem[] = (actionItemsRaw ?? []) as ActionItem[]
@@ -134,17 +142,23 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
                 {attendeeName}
               </Link>
             </h1>
-            {attendee && (
-              <>
-                {(attendee.company || attendee.job_title) && (
-                  <p className="text-muted-foreground text-sm mt-1">
-                    {[attendee.company, attendee.job_title].filter(Boolean).join(' · ')}
-                  </p>
-                )}
-                {attendee.career_stage && (
-                  <p className="text-xs text-muted-foreground">{attendee.career_stage}</p>
-                )}
-              </>
+            {attendee && (attendee.company || attendee.job_title) && (
+              <p className="text-muted-foreground text-sm mt-1">
+                {[attendee.company, attendee.job_title].filter(Boolean).join(' · ')}
+              </p>
+            )}
+            {assignedTags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {assignedTags.map((t) => (
+                  <span
+                    key={t.id}
+                    className="text-xs font-medium px-2 py-0.5 rounded-full"
+                    style={{ backgroundColor: `${t.color}26`, color: t.color }}
+                  >
+                    {t.name}
+                  </span>
+                ))}
+              </div>
             )}
           </div>
           {isOwner && (
