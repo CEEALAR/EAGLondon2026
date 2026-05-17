@@ -18,6 +18,10 @@ type MeetingRow = {
   location: string | null
   owner_id: string | null
   team_members: { display_name: string | null } | null
+  meeting_members: Array<{
+    user_id: string
+    team_members: { display_name: string | null; email: string } | null
+  }> | null
 }
 
 function statusLabel(s: MeetingStatus) {
@@ -55,7 +59,7 @@ export default async function AttendeeDetailPage(props: { params: Promise<{ id: 
     supabase.from('team_members').select('*').order('display_name'),
     supabase
       .from('meetings')
-      .select('id, status, scheduled_at, location, owner_id, team_members(display_name)')
+      .select('id, status, scheduled_at, location, owner_id, team_members(display_name), meeting_members(user_id, team_members(display_name, email))')
       .eq('attendee_id', id)
       .order('created_at', { ascending: false }),
   ])
@@ -270,7 +274,18 @@ export default async function AttendeeDetailPage(props: { params: Promise<{ id: 
                       {statusLabel(m.status)}
                     </span>
                     <span className="text-xs text-muted-foreground">
-                      {m.team_members?.display_name ?? 'Unknown'}
+                      {(() => {
+                        const ids = new Set<string>()
+                        if (m.owner_id) ids.add(m.owner_id)
+                        for (const mm of m.meeting_members ?? []) ids.add(mm.user_id)
+                        if (ids.size === 0) return m.team_members?.display_name ?? 'Unknown'
+                        return [...ids]
+                          .map((uid) => {
+                            const tm = m.meeting_members?.find((mm) => mm.user_id === uid)?.team_members
+                            return (tm?.display_name ?? tm?.email?.split('@')[0] ?? 'Someone').split(' ')[0]
+                          })
+                          .join(', ')
+                      })()}
                     </span>
                   </div>
                   {m.scheduled_at && (

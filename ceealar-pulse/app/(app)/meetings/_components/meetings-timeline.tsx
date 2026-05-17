@@ -12,6 +12,7 @@ export type TimelineMeeting = {
   location: string | null
   owner_id: string | null
   attendee_name: string
+  assignees: Array<{ user_id: string; display_name: string | null }>
 }
 
 interface MeetingsTimelineProps {
@@ -86,6 +87,12 @@ function MeetingBlock({
       }
     : undefined
 
+  // First-name list of assignees: "Attila", "Attila, David", etc.
+  const assigneeShort = meeting.assignees
+    .map((a) => (a.display_name ?? '').split(' ')[0])
+    .filter(Boolean)
+  const assigneeLabel = assigneeShort.length > 0 ? assigneeShort.join(', ') : null
+
   return (
     <Link href={`/meetings/${meeting.id}`} aria-label={`Meeting with ${meeting.attendee_name}`}>
       <div
@@ -94,7 +101,12 @@ function MeetingBlock({
         }`}
         style={{ top: `${topPx}px`, height: `${blockHeight}px`, ...overlayStyle }}
       >
-        <p className="font-semibold truncate tracking-tight">{meeting.attendee_name}</p>
+        <p className="font-semibold truncate tracking-tight">
+          {meeting.attendee_name}
+          {assigneeLabel && (
+            <span className="font-normal opacity-80 ml-1">· {assigneeLabel}</span>
+          )}
+        </p>
         {meeting.location && blockHeight >= 26 && (
           <p className="truncate opacity-80 text-[10px]">{meeting.location}</p>
         )}

@@ -213,9 +213,22 @@ export function CalendarSection({ initialCalendar }: Props) {
         <li className="flex gap-3">
           <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[var(--color-teal)] text-white text-xs font-semibold flex items-center justify-center">3</span>
           <div className="flex-1">
-            <p className="font-medium">Copy the secret iCal URL</p>
+            <p className="font-medium">
+              Copy the{' '}
+              <mark className="bg-[var(--color-gold)]/30 text-foreground rounded px-1 py-0.5 font-semibold">
+                Secret
+              </mark>
+              {' '}iCal URL
+            </p>
             <p className="text-muted-foreground text-xs">
-              Hover the calendar → 3-dot menu → <span className="font-medium">Settings and sharing</span> → scroll to <span className="font-medium">Secret address in iCal format</span> → copy the URL.
+              Hover the calendar → 3-dot menu → <span className="font-medium">Settings and sharing</span> → scroll to{' '}
+              <mark className="bg-[var(--color-gold)]/30 text-foreground rounded px-1 py-0.5 font-semibold">
+                Secret address in iCal format
+              </mark>{' '}
+              → copy the URL.
+            </p>
+            <p className="text-[11px] text-red-600 mt-1">
+              ⚠ Not the &lsquo;Public address&rsquo; — it won&apos;t include your 1:1s.
             </p>
           </div>
         </li>
