@@ -24,6 +24,8 @@ type MeetingRow = {
   meeting_notes: string | null
   comments: string | null
   follow_up_date: string | null
+  ical_uid: string | null
+  source: 'manual' | 'ical' | null
   created_at: string
   updated_at: string
   // joined
@@ -121,19 +123,31 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
           </h1>
           {isOwner && (
             <div className="flex gap-1 shrink-0 pt-1">
-              <EditMeetingButton
-                meetingId={id}
-                currentOwnerId={meeting.owner_id}
-                currentScheduledAt={meeting.scheduled_at}
-                currentLocation={meeting.location}
-                currentUserId={user.id}
-                teamMembers={teamMembers}
-              />
+              {meeting.source !== 'ical' && (
+                <EditMeetingButton
+                  meetingId={id}
+                  currentOwnerId={meeting.owner_id}
+                  currentScheduledAt={meeting.scheduled_at}
+                  currentLocation={meeting.location}
+                  currentUserId={user.id}
+                  teamMembers={teamMembers}
+                />
+              )}
               <DeleteMeetingButton meetingId={id} attendeeId={meeting.attendee_id} />
             </div>
           )}
         </div>
-        <p className="text-sm text-muted-foreground">Meeting owned by {ownerName}</p>
+        <p className="text-sm text-muted-foreground">
+          Meeting owned by {ownerName}
+          {meeting.source === 'ical' && (
+            <span className="ml-2 inline-flex items-center text-xs font-medium px-1.5 py-0.5 rounded bg-[var(--color-teal)]/10 text-[var(--color-teal)]">
+              from Swapcard
+            </span>
+          )}
+        </p>
+        {meeting.source === 'ical' && isOwner && (
+          <p className="text-xs text-muted-foreground italic">Time and location sync from Google Calendar — edit there.</p>
+        )}
 
         {meeting.scheduled_at && (
           <p className="text-sm text-foreground">

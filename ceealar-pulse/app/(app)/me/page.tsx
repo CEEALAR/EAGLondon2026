@@ -1,7 +1,10 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { MyActionItems } from './_components/my-action-items'
+import { CalendarSection } from './_components/calendar-section'
+import { UnmatchedEvents } from './_components/unmatched-events'
 
 type RawActionItem = {
   id: string
@@ -22,10 +25,37 @@ type WantToMeetRow = {
   team_members: { display_name: string | null } | null
 }
 
+type CalendarRow = {
+  url: string
+  last_synced_at: string | null
+  last_sync_error: string | null
+  created_at: string
+}
+
+type UnmatchedRow = {
+  id: string
+  summary: string
+  candidate_name: string | null
+  start_at: string
+  location: string | null
+}
+
+type AttendeeMini = {
+  id: string
+  first_name: string | null
+  last_name: string | null
+  company: string | null
+}
+
 export default async function MePage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/signin')
+
+  const admin = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: member } = await (supabase as any)
@@ -47,7 +77,7 @@ export default async function MePage() {
 
   const myMeetingIds = (myMeetingLinks ?? []).map((r: { meeting_id: string }) => r.meeting_id)
 
-  const [actionItemsResult, wantToMeetResult] = await Promise.all([
+  const [actionItemsResult, wantToMeetResult, calendarResult, unmatchedResult] = await Promise.all([
     myMeetingIds.length > 0
       ? supabase
           .from('action_items')
@@ -65,10 +95,35 @@ export default async function MePage() {
           .is('scheduled_at', null)
           .order('created_at', { ascending: false })
       : Promise.resolve({ data: [] }),
+
+    admin
+      .from('user_ical_urls')
+      .select('url, last_synced_at, last_sync_error, created_at')
+      .eq('user_id', user.id)
+      .maybeSingle(),
+
+    admin
+      .from('unmatched_ical_events')
+      .select('id, summary, candidate_name, start_at, location')
+      .eq('user_id', user.id)
+      .eq('dismissed', false)
+      .is('resolved_at', null)
+      .order('start_at', { ascending: true }),
   ])
 
   const actionItems = (actionItemsResult.data ?? []) as unknown as RawActionItem[]
   const wantToMeets = (wantToMeetResult.data ?? []) as unknown as WantToMeetRow[]
+  const calendar = (calendarResult.data ?? null) as CalendarRow | null
+  const unmatchedEvents = (unmatchedResult.data ?? []) as UnmatchedRow[]
+
+  // Fetch lightweight attendee list only if we have unmatched events to resolve
+  let attendees: AttendeeMini[] = []
+  if (unmatchedEvents.length > 0) {
+    const { data } = await admin
+      .from('attendees')
+      .select('id, first_name, last_name, company')
+    attendees = (data ?? []) as AttendeeMini[]
+  }
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
@@ -88,6 +143,23 @@ export default async function MePage() {
           <p className="text-sm text-muted-foreground truncate">{email}</p>
         </div>
       </div>
+
+      {/* Calendar */}
+      <div className="border rounded-lg p-4 bg-card space-y-3">
+        <h2 className="text-base font-semibold">Calendar</h2>
+        <CalendarSection initialCalendar={calendar} />
+      </div>
+
+      {/* Unmatched events tray */}
+      {unmatchedEvents.length > 0 && (
+        <div className="border rounded-lg p-4 bg-card space-y-3">
+          <div>
+            <h2 className="text-base font-semibold">Unmatched calendar events</h2>
+            <p className="text-xs text-muted-foreground">Pick the right attendee, or dismiss</p>
+          </div>
+          <UnmatchedEvents events={unmatchedEvents} attendees={attendees} />
+        </div>
+      )}
 
       {/* Action items */}
       <div className="border rounded-lg p-4 bg-card space-y-3">

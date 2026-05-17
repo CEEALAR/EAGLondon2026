@@ -2,9 +2,14 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import type { MeetingStatus, TeamMember } from '@/lib/types'
 import { MeetingsTimeline, type TimelineMeeting } from './_components/meetings-timeline'
+import { MyDayPanel } from './_components/my-day-panel'
+
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 export default async function MeetingsPage() {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
   const [
     { data: meetingsRaw },
@@ -45,6 +50,7 @@ export default async function MeetingsPage() {
   return (
     <div className="px-3 py-4">
       <h1 className="text-xl font-semibold mb-4 text-foreground">Schedule</h1>
+      {user && <MyDayPanel userId={user.id} />}
       {meetings.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
           <p className="text-base font-medium text-foreground">No meetings yet</p>
