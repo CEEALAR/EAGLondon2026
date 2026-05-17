@@ -5,70 +5,36 @@
  * events to attendees by first name, and applies changes to the meetings table.
  *
  * Calendar wins on time/location/duration. Pulse owns status, notes, members.
+ *
+ * Uses a custom zero-dependency parser (lib/ical-parser.ts) — node-ical/rrule
+ * had BigInt-bundling issues with Next.js webpack and dragged in temporal-polyfill
+ * which Vercel's serverless bundler couldn't resolve.
  */
 
 import { createClient as createAdminClient, SupabaseClient } from '@supabase/supabase-js'
+import { parseICal, type ParsedEvent } from './ical-parser'
 
-export type ParsedEvent = {
-  uid: string
-  summary: string
-  startAt: Date
-  endAt: Date | null
-  location: string | null
-  candidateName: string | null  // null = not a "Meet *" event
-}
+export type { ParsedEvent }
 
 export type SyncResult = {
-  fetched: number          // total VEVENTs in feed
-  meetEvents: number       // events starting with "Meet "
-  otherEvents: number      // non-Meet events
-  created: number          // new Pulse meetings created
-  promoted: number         // existing want_to_meet promoted to planned
-  updated: number          // existing iCal meetings refreshed
-  cancelled: number        // meetings cancelled because event vanished
-  unmatched: number        // landed in unmatched tray
+  fetched: number
+  meetEvents: number
+  otherEvents: number
+  inWindow: number          // meet events inside conference window
+  created: number
+  promoted: number
+  updated: number
+  cancelled: number
+  unmatched: number
   errors: string[]
 }
 
-const MEET_PREFIX_RE = /^meet\s+/i
+// EAG London 2026 conference window. Events outside this are ignored to avoid
+// importing 1:1s from other conferences the user has attended (the Swapcard
+// Google Calendar aggregates all events).
+const WINDOW_START = Date.UTC(2026, 4, 28, 0, 0, 0)  // 28 May 2026 00:00 UTC
+const WINDOW_END   = Date.UTC(2026, 5, 1, 0, 0, 0)   // 1 Jun 2026 00:00 UTC
 
-/**
- * Parse the iCal feed string into a structured list.
- * Filters out non-VEVENT entries.
- * Dynamic import keeps node-ical (and its rrule/BigInt deps) out of Next.js
- * build-time page-data collection.
- */
-export async function parseICalText(text: string): Promise<ParsedEvent[]> {
-  const ical = await import('node-ical')
-  const data = ical.parseICS(text)
-  const events: ParsedEvent[] = []
-
-  for (const key of Object.keys(data)) {
-    const entry = data[key]
-    if (!entry || entry.type !== 'VEVENT') continue
-    const summary = String(entry.summary ?? '').trim()
-    if (!entry.start || !summary) continue
-
-    const candidateName = MEET_PREFIX_RE.test(summary)
-      ? summary.replace(MEET_PREFIX_RE, '').trim() || null
-      : null
-
-    events.push({
-      uid: String(entry.uid ?? key),
-      summary,
-      startAt: new Date(entry.start as Date),
-      endAt: entry.end ? new Date(entry.end as Date) : null,
-      location: entry.location ? String(entry.location) : null,
-      candidateName,
-    })
-  }
-
-  return events
-}
-
-/**
- * Fetch the iCal URL with a sane timeout.
- */
 export async function fetchICalText(url: string): Promise<string> {
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), 10_000)
@@ -92,6 +58,15 @@ export async function fetchICalText(url: string): Promise<string> {
   }
 }
 
+export function parseICalText(text: string): ParsedEvent[] {
+  return parseICal(text)
+}
+
+function inWindow(d: Date): boolean {
+  const t = d.getTime()
+  return t >= WINDOW_START && t < WINDOW_END
+}
+
 function admin(): SupabaseClient {
   return createAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -106,53 +81,57 @@ function durationMinutes(start: Date, end: Date | null): number | null {
 }
 
 /**
- * Match a candidate first name to attendees in the DB.
- * Returns 0, 1, or many attendee ids.
+ * Match a candidate name to attendees.
+ * Tries (in order):
+ *   1. Full candidate string against first_name (handles "Sasha")
+ *   2. First word against first_name (handles "Steve Thompson")
+ *   3. First word against first_name AND last word against last_name (most precise)
+ * Returns the most specific set of matching attendee ids it finds.
  */
 async function matchAttendees(client: SupabaseClient, candidate: string): Promise<string[]> {
   const trimmed = candidate.trim()
   if (!trimmed) return []
+  const tokens = trimmed.split(/\s+/)
+  const firstToken = tokens[0]
+  const lastToken = tokens.length > 1 ? tokens[tokens.length - 1] : null
 
-  // Case-insensitive match on first_name. Use ilike to allow exact match with
-  // varying casing without pulling all attendees.
+  // Most specific: first AND last token — narrows multi-Sasha case quickly.
+  if (lastToken) {
+    const { data } = await client
+      .from('attendees')
+      .select('id')
+      .ilike('first_name', firstToken)
+      .ilike('last_name', lastToken)
+      .limit(5)
+    const ids = (data ?? []).map((r: { id: string }) => r.id)
+    if (ids.length > 0) return ids
+  }
+
+  // Fall back to first-token match
   const { data, error } = await client
     .from('attendees')
     .select('id')
-    .ilike('first_name', trimmed)
+    .ilike('first_name', firstToken)
     .limit(5)
-
   if (error) throw error
   return (data ?? []).map((r: { id: string }) => r.id)
 }
 
-/**
- * Run a full sync for one user.
- */
 export async function syncUserCalendar(userId: string, url: string): Promise<SyncResult> {
   const client = admin()
   const result: SyncResult = {
-    fetched: 0,
-    meetEvents: 0,
-    otherEvents: 0,
-    created: 0,
-    promoted: 0,
-    updated: 0,
-    cancelled: 0,
-    unmatched: 0,
-    errors: [],
+    fetched: 0, meetEvents: 0, otherEvents: 0, inWindow: 0,
+    created: 0, promoted: 0, updated: 0, cancelled: 0, unmatched: 0, errors: [],
   }
 
   let events: ParsedEvent[]
   try {
     const text = await fetchICalText(url)
-    events = await parseICalText(text)
+    events = parseICalText(text)
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
     result.errors.push(msg)
-    await client
-      .from('user_ical_urls')
-      .update({ last_sync_error: msg })
-      .eq('user_id', userId)
+    await client.from('user_ical_urls').update({ last_sync_error: msg }).eq('user_id', userId)
     return result
   }
 
@@ -160,11 +139,11 @@ export async function syncUserCalendar(userId: string, url: string): Promise<Syn
   const meetEvents = events.filter((e) => e.candidateName !== null)
   result.meetEvents = meetEvents.length
   result.otherEvents = events.length - meetEvents.length
+  const meetInWindow = meetEvents.filter((e) => inWindow(e.startAt))
+  result.inWindow = meetInWindow.length
 
-  // Set of UIDs present in current feed — used to detect cancellations
-  const liveUids = new Set(meetEvents.map((e) => e.uid))
+  const liveUids = new Set(meetInWindow.map((e) => e.uid))
 
-  // Existing iCal-sourced meetings owned by this user
   const { data: existingMeetings } = await client
     .from('meetings')
     .select('id, ical_uid, attendee_id, status, scheduled_at')
@@ -176,20 +155,18 @@ export async function syncUserCalendar(userId: string, url: string): Promise<Syn
     if (m.ical_uid) existingByUid.set(m.ical_uid, { id: m.id, status: m.status, scheduled_at: m.scheduled_at, attendee_id: m.attendee_id })
   }
 
-  for (const evt of meetEvents) {
+  for (const evt of meetInWindow) {
     if (!evt.candidateName) continue
     const dur = durationMinutes(evt.startAt, evt.endAt)
 
     const existing = existingByUid.get(evt.uid)
     if (existing) {
-      // Update calendar-owned fields; preserve status, notes, etc.
       const { error } = await client
         .from('meetings')
         .update({
           scheduled_at: evt.startAt.toISOString(),
           duration_minutes: dur,
           location: evt.location,
-          // If a previously-cancelled iCal meeting reappears, reactivate as planned
           status: existing.status === 'cancelled' ? 'planned' : existing.status,
         })
         .eq('id', existing.id)
@@ -198,7 +175,6 @@ export async function syncUserCalendar(userId: string, url: string): Promise<Syn
       continue
     }
 
-    // Try to match the candidate name to an attendee
     let matches: string[] = []
     try {
       matches = await matchAttendees(client, evt.candidateName)
@@ -209,8 +185,6 @@ export async function syncUserCalendar(userId: string, url: string): Promise<Syn
 
     if (matches.length === 1) {
       const attendeeId = matches[0]
-
-      // Look for an existing want_to_meet for this user+attendee with no iCal binding
       const { data: existingWantToMeet } = await client
         .from('meetings')
         .select('id')
@@ -222,7 +196,6 @@ export async function syncUserCalendar(userId: string, url: string): Promise<Syn
         .maybeSingle()
 
       if (existingWantToMeet) {
-        // Promote existing want_to_meet to planned with iCal data
         const { error } = await client
           .from('meetings')
           .update({
@@ -237,7 +210,6 @@ export async function syncUserCalendar(userId: string, url: string): Promise<Syn
         if (error) result.errors.push(`promote ${evt.uid}: ${error.message}`)
         else result.promoted++
       } else {
-        // Create a fresh planned meeting
         const { data: newMeeting, error } = await client
           .from('meetings')
           .insert({
@@ -255,11 +227,9 @@ export async function syncUserCalendar(userId: string, url: string): Promise<Syn
         if (error || !newMeeting) {
           result.errors.push(`create ${evt.uid}: ${error?.message ?? 'unknown'}`)
         } else {
-          // Add owner to meeting_members (matches manual creation behavior)
           await client
             .from('meeting_members')
             .upsert({ meeting_id: newMeeting.id, user_id: userId, added_by: userId }, { onConflict: 'meeting_id,user_id', ignoreDuplicates: true })
-          // Activity row
           await client.from('activity').insert({
             actor_id: userId,
             meeting_id: newMeeting.id,
@@ -271,7 +241,6 @@ export async function syncUserCalendar(userId: string, url: string): Promise<Syn
         }
       }
     } else {
-      // 0 or >1 matches → unmatched tray (upsert by user_id + ical_uid)
       const { error } = await client
         .from('unmatched_ical_events')
         .upsert({
@@ -288,19 +257,14 @@ export async function syncUserCalendar(userId: string, url: string): Promise<Syn
     }
   }
 
-  // Cancel any iCal-sourced meetings whose event vanished from the feed
   for (const [uid, existing] of existingByUid.entries()) {
     if (liveUids.has(uid)) continue
     if (existing.status === 'cancelled') continue
-    const { error } = await client
-      .from('meetings')
-      .update({ status: 'cancelled' })
-      .eq('id', existing.id)
+    const { error } = await client.from('meetings').update({ status: 'cancelled' }).eq('id', existing.id)
     if (error) result.errors.push(`cancel ${uid}: ${error.message}`)
     else result.cancelled++
   }
 
-  // Update sync metadata
   await client
     .from('user_ical_urls')
     .update({
@@ -312,12 +276,8 @@ export async function syncUserCalendar(userId: string, url: string): Promise<Syn
   return result
 }
 
-/**
- * Public: list non-Meet events for the "My Day" panel.
- * Returns a lightweight preview without writing anything.
- */
 export async function fetchOtherEvents(url: string): Promise<ParsedEvent[]> {
   const text = await fetchICalText(url)
-  const events = await parseICalText(text)
-  return events.filter((e) => e.candidateName === null)
+  const events = parseICalText(text)
+  return events.filter((e) => e.candidateName === null && inWindow(e.startAt))
 }

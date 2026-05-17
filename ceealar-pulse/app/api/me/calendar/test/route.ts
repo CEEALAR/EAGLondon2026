@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const text = await fetchICalText(url.trim())
-    const events = await parseICalText(text)
+    const events = parseICalText(text)
     const meetEvents = events.filter((e) => e.candidateName !== null)
     const preview = meetEvents.slice(0, 5).map((e) => ({
       summary: e.summary,
