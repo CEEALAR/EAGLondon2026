@@ -71,16 +71,22 @@ export async function parseICalText(text: string): Promise<ParsedEvent[]> {
  */
 export async function fetchICalText(url: string): Promise<string> {
   const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 15_000)
+  const timeout = setTimeout(() => controller.abort(), 10_000)
   try {
     const res = await fetch(url, {
       signal: controller.signal,
       headers: { 'User-Agent': 'CEEALAR-Pulse/1.0 (iCal sync)' },
+      redirect: 'follow',
     })
     if (!res.ok) {
-      throw new Error(`iCal fetch failed: ${res.status} ${res.statusText}`)
+      throw new Error(`iCal fetch failed: HTTP ${res.status} ${res.statusText}`)
     }
     return await res.text()
+  } catch (e) {
+    if (e instanceof Error && e.name === 'AbortError') {
+      throw new Error('iCal fetch timed out after 10 seconds — Google may be slow or the URL is wrong')
+    }
+    throw e
   } finally {
     clearTimeout(timeout)
   }

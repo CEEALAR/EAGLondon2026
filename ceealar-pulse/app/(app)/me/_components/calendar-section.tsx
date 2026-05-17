@@ -34,19 +34,37 @@ export function CalendarSection({ initialCalendar }: Props) {
   async function handleTest() {
     setPreview(null)
     setBusy('test')
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 25_000)
     try {
       const res = await fetch('/api/me/calendar/test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: url.trim() }),
+        signal: controller.signal,
       })
-      const data = await res.json()
-      if (!res.ok) {
-        toast.error(data.error ?? 'Test failed')
+      const ct = res.headers.get('content-type') ?? ''
+      let data: { error?: string; totalEvents?: number; meetEvents?: number; preview?: Preview['preview'] } | null = null
+      if (ct.includes('application/json')) {
+        data = await res.json().catch(() => null)
+      } else {
+        const text = await res.text().catch(() => '')
+        toast.error(`Server returned ${res.status}: ${text.slice(0, 120) || 'no body'}`)
         return
       }
-      setPreview(data)
+      if (!res.ok) {
+        toast.error(data?.error ?? `Test failed (HTTP ${res.status})`)
+        return
+      }
+      setPreview(data as Preview)
+    } catch (e) {
+      if (e instanceof Error && e.name === 'AbortError') {
+        toast.error('Test timed out after 25 seconds — try again')
+      } else {
+        toast.error(e instanceof Error ? e.message : 'Network error')
+      }
     } finally {
+      clearTimeout(timeout)
       setBusy(null)
     }
   }
@@ -59,15 +77,16 @@ export function CalendarSection({ initialCalendar }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: url.trim() }),
       })
-      const data = await res.json()
+      const data = await res.json().catch(() => null)
       if (!res.ok) {
-        toast.error(data.error ?? 'Save failed')
+        toast.error(data?.error ?? `Save failed (HTTP ${res.status})`)
         return
       }
       toast.success('Calendar connected — syncing now…')
-      // Trigger first sync immediately (force bypasses throttle for new connections)
-      await fetch('/api/me/calendar/sync?force=1', { method: 'POST' })
+      await fetch('/api/me/calendar/sync?force=1', { method: 'POST' }).catch(() => null)
       router.refresh()
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Network error')
     } finally {
       setBusy(null)
     }
@@ -77,9 +96,9 @@ export function CalendarSection({ initialCalendar }: Props) {
     setBusy('sync')
     try {
       const res = await fetch('/api/me/calendar/sync?force=1', { method: 'POST' })
-      const data = await res.json()
+      const data = await res.json().catch(() => null)
       if (!res.ok) {
-        toast.error(data.error ?? 'Sync failed')
+        toast.error(data?.error ?? `Sync failed (HTTP ${res.status})`)
         return
       }
       const summary = [
@@ -91,6 +110,8 @@ export function CalendarSection({ initialCalendar }: Props) {
       ].filter(Boolean).join(' · ')
       toast.success(summary || 'No changes from feed')
       router.refresh()
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Network error')
     } finally {
       setBusy(null)
     }

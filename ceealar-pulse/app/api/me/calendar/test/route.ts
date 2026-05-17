@@ -4,6 +4,7 @@ import { fetchICalText, parseICalText } from '@/lib/ical-sync'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
+export const maxDuration = 30
 
 const ICAL_URL_RE = /^https:\/\/calendar\.google\.com\/calendar\/ical\/.+\.ics(\?.*)?$/
 
