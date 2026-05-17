@@ -6,20 +6,25 @@ export async function GET(request: NextRequest) {
   const { searchParams, origin } = request.nextUrl
   const code = searchParams.get('code')
 
-  if (!code) {
-    return NextResponse.redirect(`${origin}/signin`)
-  }
-
   const supabase = await createClient()
-  const { error } = await supabase.auth.exchangeCodeForSession(code)
 
-  if (error) {
-    return NextResponse.redirect(`${origin}/signin?error=auth_error`)
+  // If a code is present, this is a fresh OAuth return — exchange it.
+  // If no code, the user may already have a session (the signin page can
+  // re-hit this route to run the post-auth routing logic).
+  if (code) {
+    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    if (error) {
+      return NextResponse.redirect(`${origin}/signin?error=auth_error`)
+    }
   }
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user?.email?.endsWith('@ceealar.org')) {
+  if (!user) {
+    return NextResponse.redirect(`${origin}/signin`)
+  }
+
+  if (!user.email?.endsWith('@ceealar.org')) {
     await supabase.auth.signOut()
     return NextResponse.redirect(`${origin}/signin?error=unauthorized`)
   }

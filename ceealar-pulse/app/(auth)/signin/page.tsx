@@ -1,7 +1,7 @@
 'use client'
 
 import { Suspense, useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 const EVENT_START = new Date('2026-05-29T09:00:00+01:00').getTime()
@@ -22,11 +22,48 @@ function useCountdown(target: number) {
 }
 
 function SignInContent() {
+  const router = useRouter()
   const searchParams = useSearchParams()
   const error = searchParams.get('error')
   const supabase = createClient()
 
+  // 'idle' = ready to sign in, 'detected' = already authenticated (auto-redirect),
+  // 'oauth' = OAuth flow in progress (browser will navigate away)
+  const [authState, setAuthState] = useState<'idle' | 'detected' | 'oauth'>('idle')
+
+  // On mount, check if the user is already authenticated. This handles the
+  // post-OAuth round-trip where cookies haven't fully propagated yet — the
+  // (app) layout bounces them back to /signin, but the session IS there.
+  useEffect(() => {
+    let active = true
+    supabase.auth.getUser().then(({ data }) => {
+      if (!active) return
+      if (data?.user) {
+        setAuthState('detected')
+        // The auth/callback decides destination based on user_ical_urls.
+        // Re-hit it so the right routing logic runs again on the server.
+        router.replace('/auth/callback')
+      }
+    })
+
+    // Also subscribe to onAuthStateChange in case the session arrives slightly
+    // after mount (race between cookie propagation and client check)
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!active) return
+      if (event === 'SIGNED_IN' && session?.user) {
+        setAuthState('detected')
+        router.replace('/auth/callback')
+      }
+    })
+
+    return () => {
+      active = false
+      sub.subscription.unsubscribe()
+    }
+  }, [router, supabase])
+
   async function handleSignIn() {
+    setAuthState('oauth')
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -34,6 +71,21 @@ function SignInContent() {
         queryParams: { hd: 'ceealar.org' },
       },
     })
+  }
+
+  if (authState === 'detected') {
+    return (
+      <div className="w-full max-w-sm rounded-xl bg-white/95 backdrop-blur border border-white/60 px-5 py-4 shadow-lg flex items-center gap-3 fade-up">
+        <span
+          aria-hidden
+          className="w-5 h-5 rounded-full border-2 border-[var(--color-teal)]/30 border-t-[var(--color-teal)] animate-spin"
+        />
+        <div className="text-sm">
+          <p className="font-semibold">Welcome back — signing you in…</p>
+          <p className="text-xs text-muted-foreground mt-0.5">One moment.</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -46,18 +98,31 @@ function SignInContent() {
 
       <button
         onClick={handleSignIn}
-        className="press group w-full max-w-sm h-12 rounded-xl flex items-center justify-center gap-3 bg-white/95 backdrop-blur border border-white/60 text-foreground text-sm font-medium shadow-lg shadow-black/10 hover:shadow-xl hover:shadow-[var(--color-teal)]/15 hover:border-[var(--color-teal)]/40 transition-all duration-300"
+        disabled={authState === 'oauth'}
+        className="press group w-full max-w-sm h-12 rounded-xl flex items-center justify-center gap-3 bg-white/95 backdrop-blur border border-white/60 text-foreground text-sm font-medium shadow-lg shadow-black/10 hover:shadow-xl hover:shadow-[var(--color-teal)]/15 hover:border-[var(--color-teal)]/40 transition-all duration-300 disabled:opacity-70 disabled:cursor-wait"
       >
-        <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden>
-          <path d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.57 2.7-3.88 2.7-6.62z" fill="#4285F4"/>
-          <path d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.83.86-3.06.86-2.35 0-4.34-1.6-5.05-3.74H.97v2.34A9 9 0 0 0 9 18z" fill="#34A853"/>
-          <path d="M3.95 10.68A5.4 5.4 0 0 1 3.66 9c0-.58.1-1.15.29-1.68V4.98H.97A9 9 0 0 0 0 9c0 1.45.35 2.83.97 4.02l2.98-2.34z" fill="#FBBC05"/>
-          <path d="M9 3.58c1.32 0 2.5.46 3.44 1.35l2.58-2.58A9 9 0 0 0 9 0 9 9 0 0 0 .97 4.98l2.98 2.34C4.66 5.18 6.65 3.58 9 3.58z" fill="#EA4335"/>
-        </svg>
-        Continue with Google
-        <span className="ml-1 text-muted-foreground/60 group-hover:text-[var(--color-teal)] transition-colors">
-          →
-        </span>
+        {authState === 'oauth' ? (
+          <>
+            <span
+              aria-hidden
+              className="w-4 h-4 rounded-full border-2 border-[var(--color-teal)]/30 border-t-[var(--color-teal)] animate-spin"
+            />
+            Redirecting to Google…
+          </>
+        ) : (
+          <>
+            <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden>
+              <path d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.57 2.7-3.88 2.7-6.62z" fill="#4285F4"/>
+              <path d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.83.86-3.06.86-2.35 0-4.34-1.6-5.05-3.74H.97v2.34A9 9 0 0 0 9 18z" fill="#34A853"/>
+              <path d="M3.95 10.68A5.4 5.4 0 0 1 3.66 9c0-.58.1-1.15.29-1.68V4.98H.97A9 9 0 0 0 0 9c0 1.45.35 2.83.97 4.02l2.98-2.34z" fill="#FBBC05"/>
+              <path d="M9 3.58c1.32 0 2.5.46 3.44 1.35l2.58-2.58A9 9 0 0 0 9 0 9 9 0 0 0 .97 4.98l2.98 2.34C4.66 5.18 6.65 3.58 9 3.58z" fill="#EA4335"/>
+            </svg>
+            Continue with Google
+            <span className="ml-1 text-muted-foreground/60 group-hover:text-[var(--color-teal)] transition-colors">
+              →
+            </span>
+          </>
+        )}
       </button>
     </>
   )
