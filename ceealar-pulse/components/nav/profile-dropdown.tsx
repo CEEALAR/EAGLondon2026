@@ -50,6 +50,10 @@ export function ProfileDropdown({ user }: ProfileDropdownProps) {
           <div className="text-xs text-muted-foreground">{user.email}</div>
         </div>
         <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => router.push('/admin')}>
+          Admin
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut}>
           Sign out
         </DropdownMenuItem>
