@@ -11,13 +11,6 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import type { TeamMember, MeetingStatus } from '@/lib/types'
 
 interface MeetingCreateDialogProps {
@@ -45,17 +38,16 @@ export function MeetingCreateDialog({
 
   const showTimeFields = status === 'planned'
 
-  async function handleSubmit(overrideStatus?: MeetingStatus) {
+  async function handleSubmit() {
     setSaving(true)
     try {
-      const finalStatus = overrideStatus ?? status
       const res = await fetch('/api/meetings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           attendee_id: attendeeId,
           owner_id: ownerId,
-          status: finalStatus,
+          status,
           scheduled_at: showTimeFields && scheduledAt ? scheduledAt : null,
           duration_minutes: showTimeFields && scheduledAt ? 30 : null,
           location: location || null,
@@ -113,21 +105,17 @@ export function MeetingCreateDialog({
             </select>
           </div>
 
-          {/* Status */}
+          {/* Status — native select avoids stale display before user opens */}
           <div className="space-y-1">
             <label className="text-sm font-medium">Status</label>
-            <Select
+            <select
               value={status}
-              onValueChange={(v) => setStatus(v as MeetingStatus)}
+              onChange={(e) => setStatus(e.target.value as MeetingStatus)}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
             >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="want_to_meet">Want to Meet</SelectItem>
-                <SelectItem value="planned">Planned (with time)</SelectItem>
-              </SelectContent>
-            </Select>
+              <option value="want_to_meet">Want to Meet</option>
+              <option value="planned">Planned (with time)</option>
+            </select>
           </div>
 
           {/* Date + time — :00 and :30 only */}
@@ -155,23 +143,27 @@ export function MeetingCreateDialog({
           </div>
         </div>
 
-        {/* Buttons */}
+        {/* Single action — label adapts to chosen status */}
         <div className="flex gap-2 pt-4">
           <Button
             variant="outline"
             className="flex-1"
             disabled={saving}
-            onClick={() => handleSubmit('want_to_meet')}
+            onClick={() => setOpen(false)}
           >
-            Want to Meet
+            Cancel
           </Button>
           <Button
             variant="default"
             className="flex-1"
-            disabled={saving}
+            disabled={saving || (showTimeFields && !scheduledAt)}
             onClick={() => handleSubmit()}
           >
-            {saving ? 'Saving…' : 'Save Meeting'}
+            {saving
+              ? 'Saving…'
+              : status === 'planned'
+              ? 'Schedule Meeting'
+              : 'Add to Want to Meet'}
           </Button>
         </div>
       </DialogContent>
