@@ -3,7 +3,6 @@ import { notFound } from 'next/navigation'
 import { ExternalLink } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { createClient } from '@/lib/supabase/server'
-import { StrategicContextForm } from '@/app/(app)/attendees/_components/strategic-context-form'
 import { AttendeeActions } from '@/app/(app)/attendees/_components/attendee-actions'
 import { AssignColleagueButton } from '@/app/(app)/attendees/_components/assign-colleague-button'
 import { PriorityBadge } from '@/components/priority-badge'
@@ -149,27 +148,7 @@ export default async function AttendeeDetailPage(props: { params: Promise<{ id: 
         </div>
       </div>
 
-      {/* Section 2 — CEEALAR Strategic Context (the most actionable info goes first) */}
-      <div className="border rounded-lg p-4 bg-card">
-        <h2 className="text-lg font-semibold mb-4">CEEALAR Strategic Context</h2>
-        <StrategicContextForm
-          attendeeId={attendee.id}
-          initialValues={{
-            why_they_matter: attendee.why_they_matter,
-            how_to_engage: attendee.how_to_engage,
-            hypothesis: attendee.hypothesis,
-            risks: attendee.risks,
-            collaboration_hooks: attendee.collaboration_hooks,
-          }}
-          spreadsheetSays={{
-            why_they_matter: attendee.priority_imported_why_relevant,
-            how_to_engage: attendee.priority_imported_talking_points,
-            imported_at: attendee.priority_imported_at,
-          }}
-        />
-      </div>
-
-      {/* Section 3 — Swapcard Profile */}
+      {/* Section 2 — Swapcard Profile (Why they matter / How to engage live on each meeting) */}
       <div className="border rounded-lg p-4 space-y-3 bg-card">
         <h2 className="text-lg font-semibold mb-3">Profile</h2>
 
@@ -236,13 +215,13 @@ export default async function AttendeeDetailPage(props: { params: Promise<{ id: 
         </ProfileField>
       </div>
 
-      {/* Section 4 — Tags */}
+      {/* Section 3 — Tags */}
       <div className="border rounded-lg p-4 bg-card">
         <h2 className="text-lg font-semibold mb-2">Tags</h2>
         <AttendeeTagsSection attendeeId={attendee.id} initialTags={assignedTags} />
       </div>
 
-      {/* Section 5 — Team Meetings */}
+      {/* Section 4 — Team Meetings */}
       <div className="border rounded-lg p-4 bg-card">
         <h2 className="text-lg font-semibold mb-3">Team Meetings</h2>
         {meetings.length === 0 ? (

@@ -61,15 +61,15 @@ export function MeetingNotesForm({ meetingId, initialValues }: MeetingNotesFormP
   return (
     <div className="space-y-4">
       <AutosaveTextarea
-        label="Why Relevant"
+        label="Why they matter"
         value={initialValues.why_relevant ?? ''}
-        placeholder="Why do we want to meet this person? Strategic context, mutual goals…"
+        placeholder="Strategic context — why CEEALAR should care about this person…"
         onSave={(v) => save('why_relevant', v)}
       />
       <AutosaveTextarea
-        label="Talking Points"
+        label="How to engage"
         value={initialValues.talking_points ?? ''}
-        placeholder="Specific things to bring up — questions, asks, intros…"
+        placeholder="Specific things to bring up — questions, asks, intros, framings…"
         onSave={(v) => save('talking_points', v)}
       />
       <AutosaveTextarea
