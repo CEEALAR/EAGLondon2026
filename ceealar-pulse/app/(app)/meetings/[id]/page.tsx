@@ -5,7 +5,7 @@ import { format, parseISO } from 'date-fns'
 import { createClient } from '@/lib/supabase/server'
 import { MeetingNotesForm } from './_components/meeting-notes-form'
 import { ActionItemsSection } from './_components/action-items-section'
-import { StatusChanger } from './_components/status-changer'
+import { StatusChanger, StatusBadge } from './_components/status-changer'
 import { FollowUpDate } from './_components/follow-up-date'
 import { DeleteMeetingButton } from './_components/delete-meeting-button'
 import { EditMeetingButton } from './_components/edit-meeting-button'
@@ -217,8 +217,11 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
       </div>
 
       {/* Section 2 — Status Changer */}
-      <div className="border rounded-lg p-4 bg-card space-y-2">
-        <h2 className="text-base font-semibold">Status</h2>
+      <div className="border rounded-lg p-4 bg-card space-y-3">
+        <div className="flex items-center gap-2 flex-wrap">
+          <h2 className="text-base font-semibold">Status</h2>
+          <StatusBadge status={meeting.status} />
+        </div>
         <StatusChanger
           meetingId={id}
           currentStatus={meeting.status}

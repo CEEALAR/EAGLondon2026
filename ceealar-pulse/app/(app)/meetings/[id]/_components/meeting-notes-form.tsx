@@ -78,8 +78,9 @@ export function MeetingNotesForm({ meetingId, initialValues }: MeetingNotesFormP
         onSave={(v) => save('meeting_notes', v)}
       />
       <AutosaveTextarea
-        label="Comments"
+        label="Comments, impressions, notes about the person"
         value={initialValues.comments ?? ''}
+        placeholder="Personal observations, vibes, things to remember for next time…"
         onSave={(v) => save('comments', v)}
       />
     </div>

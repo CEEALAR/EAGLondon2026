@@ -28,6 +28,16 @@ const STATUS_CLASSES: Record<MeetingStatus, string> = {
   cancelled:    'bg-gray-200 text-gray-500',
 }
 
+export function StatusBadge({ status }: { status: MeetingStatus }) {
+  return (
+    <span
+      className={`inline-block text-sm font-medium px-3 py-1 rounded-full ${STATUS_CLASSES[status]}`}
+    >
+      {STATUS_LABELS[status]}
+    </span>
+  )
+}
+
 export function StatusChanger({ meetingId, currentStatus, isOwner, isIcal = false }: StatusChangerProps) {
   const router = useRouter()
   const [saving, setSaving] = useState(false)
@@ -57,16 +67,8 @@ export function StatusChanger({ meetingId, currentStatus, isOwner, isIcal = fals
     }
   }
 
-  const statusBadge = (
-    <span
-      className={`inline-block text-sm font-medium px-3 py-1 rounded-full ${STATUS_CLASSES[currentStatus]}`}
-    >
-      {STATUS_LABELS[currentStatus]}
-    </span>
-  )
-
   if (!isOwner) {
-    return <div>{statusBadge}</div>
+    return null  // badge is rendered inline with the section heading
   }
 
   // Owner-only action buttons based on current state
@@ -139,10 +141,7 @@ export function StatusChanger({ meetingId, currentStatus, isOwner, isIcal = fals
     }
   }
 
-  return (
-    <div className="flex flex-wrap items-center gap-2">
-      {statusBadge}
-      {actionButtons}
-    </div>
-  )
+  if (actionButtons.length === 0) return null
+
+  return <div className="flex flex-wrap gap-2">{actionButtons}</div>
 }
