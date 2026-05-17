@@ -10,7 +10,8 @@ async function getStats() {
 
   const [
     { count: attendees },
-    { count: meetings },
+    { count: wantToMeet },
+    { count: scheduled },
     { count: meetingsDone },
     { count: actionItems },
     { count: actionItemsDone },
@@ -19,7 +20,8 @@ async function getStats() {
     { count: teamMembers },
   ] = await Promise.all([
     admin.from('attendees').select('*', { count: 'exact', head: true }),
-    admin.from('meetings').select('*', { count: 'exact', head: true }).in('status', ['want_to_meet', 'planned', 'done']),
+    admin.from('meetings').select('*', { count: 'exact', head: true }).eq('status', 'want_to_meet'),
+    admin.from('meetings').select('*', { count: 'exact', head: true }).in('status', ['planned', 'done']),
     admin.from('meetings').select('*', { count: 'exact', head: true }).eq('status', 'done'),
     admin.from('action_items').select('*', { count: 'exact', head: true }),
     admin.from('action_items').select('*', { count: 'exact', head: true }).eq('done', true),
@@ -30,7 +32,8 @@ async function getStats() {
 
   return {
     attendees: attendees ?? 0,
-    meetings: meetings ?? 0,
+    wantToMeet: wantToMeet ?? 0,
+    scheduled: scheduled ?? 0,
     meetingsDone: meetingsDone ?? 0,
     actionItems: actionItems ?? 0,
     actionItemsDone: actionItemsDone ?? 0,
@@ -64,13 +67,14 @@ export default async function AdminPage() {
           <StatCard label="Attendees" value={stats.attendees} />
           <StatCard label="Team members" value={stats.teamMembers} />
           <StatCard label="Tags" value={stats.tags} sub={`${stats.tagAssignments} assignments`} />
-          <StatCard
-            label="Meetings"
-            value={stats.meetings}
-            sub={`${stats.meetingsDone} done`}
-          />
+          <StatCard label="Want to meet" value={stats.wantToMeet} sub="no time yet" />
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
+          <StatCard
+            label="Scheduled meetings"
+            value={stats.scheduled}
+            sub={`${stats.meetingsDone} done`}
+          />
           <StatCard
             label="Action items"
             value={stats.actionItems}
@@ -92,7 +96,7 @@ export default async function AdminPage() {
       <section>
         <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-1">Export data</h2>
         <p className="text-sm text-muted-foreground mb-3">
-          Downloads a CSV with all {stats.attendees.toLocaleString()} attendees, strategic context, tags, and meeting summary (27 columns).
+          Downloads a CSV with all {stats.attendees.toLocaleString()} attendees — every Swapcard field, strategic context, tags, and full detail of each attendee&apos;s most recent meeting (status, time, location, why relevant, talking points, notes, comments, follow-up, all action items).
         </p>
         <ExportWidget />
       </section>

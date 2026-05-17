@@ -39,15 +39,37 @@ type AttendeeWithTags = {
   attendee_tags: { tag_id: string; tags: { name: string } | null }[]
 }
 
+type ActionItemRow = { text: string; done: boolean }
+
 type MeetingRow = {
   attendee_id: string
   status: string
-  action_items: { done: boolean }[]
+  scheduled_at: string | null
+  duration_minutes: number | null
+  location: string | null
+  why_relevant: string | null
+  talking_points: string | null
+  meeting_notes: string | null
+  comments: string | null
+  follow_up_date: string | null
+  source: string | null
+  created_at: string
+  action_items: ActionItemRow[]
 }
 
 type MeetingSummary = {
   meeting_count: number
   last_status: string
+  last_scheduled_at: string | null
+  last_duration_minutes: number | null
+  last_location: string | null
+  last_why_relevant: string | null
+  last_talking_points: string | null
+  last_meeting_notes: string | null
+  last_comments: string | null
+  last_follow_up_date: string | null
+  last_source: string | null
+  all_action_items: string  // concatenated text from all meetings
   open_action_items: number
 }
 
@@ -79,10 +101,11 @@ export async function GET() {
 
   const attendees = (attendeesRaw ?? []) as unknown as AttendeeWithTags[]
 
-  // Query 2: Meetings with action items, ordered by created_at desc so first entry per attendee = last meeting
+  // Query 2: Meetings with full detail + action items, ordered by created_at desc
+  // so first entry per attendee = most recent meeting.
   const { data: meetingsRaw, error: meetingsError } = await adminClient
     .from('meetings')
-    .select('attendee_id, status, action_items(done)')
+    .select('attendee_id, status, scheduled_at, duration_minutes, location, why_relevant, talking_points, meeting_notes, comments, follow_up_date, source, created_at, action_items(text, done)')
     .order('created_at', { ascending: false })
 
   if (meetingsError) {
@@ -94,28 +117,45 @@ export async function GET() {
   // Build attendee_id -> MeetingSummary map
   const meetingMap = new Map<string, MeetingSummary>()
 
+  function actionItemText(ai: ActionItemRow): string {
+    return `${ai.done ? '[x]' : '[ ]'} ${ai.text}`
+  }
+
   for (const m of meetings) {
+    const items = m.action_items ?? []
+    const openCount = items.filter((ai) => !ai.done).length
+    const itemTexts = items.map(actionItemText)
+
     const existing = meetingMap.get(m.attendee_id)
     if (!existing) {
-      // First occurrence is the most recent (ordered desc)
-      const openItems = (m.action_items ?? []).filter((ai) => !ai.done).length
+      // First occurrence is the most recent (ordered desc) — capture all detail
       meetingMap.set(m.attendee_id, {
         meeting_count: 1,
         last_status: m.status,
-        open_action_items: openItems,
+        last_scheduled_at: m.scheduled_at,
+        last_duration_minutes: m.duration_minutes,
+        last_location: m.location,
+        last_why_relevant: m.why_relevant,
+        last_talking_points: m.talking_points,
+        last_meeting_notes: m.meeting_notes,
+        last_comments: m.comments,
+        last_follow_up_date: m.follow_up_date,
+        last_source: m.source,
+        all_action_items: itemTexts.join('\n'),
+        open_action_items: openCount,
       })
     } else {
-      // Subsequent meetings — increment count and open items
-      const openItems = (m.action_items ?? []).filter((ai) => !ai.done).length
+      // Subsequent meetings (older) — accumulate counts + action item text only
       meetingMap.set(m.attendee_id, {
+        ...existing,
         meeting_count: existing.meeting_count + 1,
-        last_status: existing.last_status, // keep first (= most recent)
-        open_action_items: existing.open_action_items + openItems,
+        open_action_items: existing.open_action_items + openCount,
+        all_action_items: [existing.all_action_items, ...itemTexts].filter(Boolean).join('\n'),
       })
     }
   }
 
-  // CSV header — exact order as specified
+  // CSV header — every attendee + meeting field
   const HEADERS = [
     'id',
     'swapcard_url',
@@ -141,6 +181,16 @@ export async function GET() {
     'tags',
     'meeting_count',
     'last_meeting_status',
+    'last_meeting_scheduled_at',
+    'last_meeting_duration_minutes',
+    'last_meeting_location',
+    'last_meeting_source',
+    'last_meeting_why_relevant',
+    'last_meeting_talking_points',
+    'last_meeting_notes',
+    'last_meeting_comments',
+    'last_meeting_follow_up_date',
+    'all_action_items',
     'open_action_items',
     'created_at',
     'updated_at',
@@ -180,6 +230,16 @@ export async function GET() {
       csvCell(tagNames),
       summary ? String(summary.meeting_count) : '0',
       summary ? csvCell(summary.last_status) : '',
+      summary ? csvCell(summary.last_scheduled_at) : '',
+      summary?.last_duration_minutes ? String(summary.last_duration_minutes) : '',
+      summary ? csvCell(summary.last_location) : '',
+      summary ? csvCell(summary.last_source) : '',
+      summary ? csvCell(summary.last_why_relevant) : '',
+      summary ? csvCell(summary.last_talking_points) : '',
+      summary ? csvCell(summary.last_meeting_notes) : '',
+      summary ? csvCell(summary.last_comments) : '',
+      summary ? csvCell(summary.last_follow_up_date) : '',
+      summary ? csvCell(summary.all_action_items) : '',
       summary ? String(summary.open_action_items) : '0',
       csvCell(a.created_at),
       csvCell(a.updated_at),
