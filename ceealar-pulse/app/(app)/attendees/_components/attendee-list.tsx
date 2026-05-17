@@ -2,8 +2,8 @@
 
 import React, { useRef, useState, useMemo, useEffect } from 'react'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { Attendee, Tag } from '@/lib/types'
-import { AttendeeRow } from './attendee-row'
+import { Attendee, Tag, TeamMember } from '@/lib/types'
+import { AttendeeRow, type AssigneeMini } from './attendee-row'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -21,6 +21,9 @@ const SORT_LABEL: Record<SortMode, string> = {
 interface AttendeeListProps {
   attendees: Attendee[]
   allTags: Tag[]
+  teamMembers?: TeamMember[]
+  /** attendee_id -> [user_id, ...] of who's actively assigned (owner ∪ members). */
+  assignments?: Record<string, string[]>
 }
 
 type FilterState = {
@@ -31,6 +34,7 @@ type FilterState = {
   careerStage: Set<string>
   country: Set<string>
   seekingWork: Set<string>
+  assignedTo: Set<string>   // user_ids
 }
 
 const emptyFilters = (): FilterState => ({
@@ -41,6 +45,7 @@ const emptyFilters = (): FilterState => ({
   careerStage: new Set(),
   country: new Set(),
   seekingWork: new Set(),
+  assignedTo: new Set(),
 })
 
 // ── Persistence ───────────────────────────────────────────────────────────
@@ -59,6 +64,7 @@ type PersistedPrefs = {
     careerStage: string[]
     country: string[]
     seekingWork: string[]
+    assignedTo?: string[]
   }
 }
 
@@ -93,6 +99,7 @@ function filtersToJson(f: FilterState): PersistedPrefs['filters'] {
     careerStage:  [...f.careerStage],
     country:      [...f.country],
     seekingWork:  [...f.seekingWork],
+    assignedTo:   [...f.assignedTo],
   }
 }
 
@@ -106,6 +113,7 @@ function filtersFromJson(j: PersistedPrefs['filters'] | undefined): FilterState 
     careerStage:  new Set(j.careerStage ?? []),
     country:      new Set(j.country ?? []),
     seekingWork:  new Set(j.seekingWork ?? []),
+    assignedTo:   new Set(j.assignedTo ?? []),
   }
 }
 
@@ -117,11 +125,12 @@ function activeCount(f: FilterState): number {
     f.interests.size +
     f.careerStage.size +
     f.country.size +
-    f.seekingWork.size
+    f.seekingWork.size +
+    f.assignedTo.size
   )
 }
 
-export function AttendeeList({ attendees, allTags }: AttendeeListProps) {
+export function AttendeeList({ attendees, allTags, teamMembers = [], assignments = {} }: AttendeeListProps) {
   const [query, setQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [filterOpen, setFilterOpen] = useState(false)
@@ -269,6 +278,14 @@ export function AttendeeList({ attendees, allTags }: AttendeeListProps) {
       result = result.filter((a) => typeof a.seeking_work === 'string' && applied.seekingWork.has(a.seeking_work))
     }
 
+    if (applied.assignedTo.size > 0) {
+      result = result.filter((a) => {
+        const ids = assignments[a.id]
+        if (!ids || ids.length === 0) return false
+        return [...applied.assignedTo].some((u) => ids.includes(u))
+      })
+    }
+
     if (sortMode === 'priority') {
       // Highest priority first (5 → 1), then unprioritized (null) by name.
       result = [...result].sort((a, b) => {
@@ -282,7 +299,34 @@ export function AttendeeList({ attendees, allTags }: AttendeeListProps) {
     }
 
     return result
-  }, [attendees, debouncedQuery, applied, sortMode])
+  }, [attendees, debouncedQuery, applied, sortMode, assignments])
+
+  // Memoize teammate display lookup once so each row render is O(1)
+  const teamMembersById = useMemo(() => {
+    const map = new Map<string, TeamMember>()
+    for (const m of teamMembers) map.set(m.id, m)
+    return map
+  }, [teamMembers])
+
+  const assigneeListFor = (attendeeId: string): AssigneeMini[] => {
+    const ids = assignments[attendeeId]
+    if (!ids || ids.length === 0) return []
+    return ids
+      .map((uid) => {
+        const tm = teamMembersById.get(uid)
+        if (!tm) return null
+        const name = tm.display_name ?? tm.email
+        const initials = name
+          .split(/\s+/)
+          .map((w) => w[0])
+          .filter(Boolean)
+          .slice(0, 2)
+          .join('')
+          .toUpperCase()
+        return { user_id: uid, display_name: name, initials }
+      })
+      .filter((x): x is AssigneeMini => x !== null)
+  }
 
   const parentRef = useRef<HTMLDivElement>(null)
   const virtualizer = useVirtualizer({
@@ -366,6 +410,7 @@ export function AttendeeList({ attendees, allTags }: AttendeeListProps) {
               careerStage: new Set(applied.careerStage),
               country: new Set(applied.country),
               seekingWork: new Set(applied.seekingWork),
+              assignedTo: new Set(applied.assignedTo),
             })
             setFilterOpen(true)
           }}
@@ -425,6 +470,24 @@ export function AttendeeList({ attendees, allTags }: AttendeeListProps) {
                     style={{ backgroundColor: t.color }}
                   />
                   {t.name}
+                  <X size={11} />
+                </button>
+              )
+            })}
+            {/* Assigned-to chips */}
+            {[...applied.assignedTo].map((uid) => {
+              const tm = teamMembersById.get(uid)
+              const label = tm?.display_name ?? tm?.email ?? uid
+              return (
+                <button
+                  key={`assignedTo-${uid}`}
+                  onClick={() =>
+                    setApplied((a) => ({ ...a, assignedTo: toggleSet(a.assignedTo, uid, false) }))
+                  }
+                  className="press inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[var(--color-teal)]/10 text-[var(--color-teal)] border border-[var(--color-teal)]/30 hover:bg-[var(--color-teal)]/15"
+                  title={`Assigned to ${label}`}
+                >
+                  <span className="max-w-[160px] truncate">{label}</span>
                   <X size={11} />
                 </button>
               )
@@ -490,6 +553,7 @@ export function AttendeeList({ attendees, allTags }: AttendeeListProps) {
               <AttendeeRow
                 key={a.id}
                 attendee={a}
+                assignees={assigneeListFor(a.id)}
                 style={{ position: 'relative', width: '100%', height: '72px' }}
               />
             ))}
@@ -500,6 +564,7 @@ export function AttendeeList({ attendees, allTags }: AttendeeListProps) {
               <AttendeeRow
                 key={item.key}
                 attendee={filtered[item.index]}
+                assignees={assigneeListFor(filtered[item.index].id)}
                 style={{
                   position: 'absolute',
                   top: 0,
@@ -559,6 +624,38 @@ export function AttendeeList({ attendees, allTags }: AttendeeListProps) {
                         <span className={`tabular-nums text-[10px] ${selected ? 'opacity-80' : 'text-muted-foreground'}`}>
                           {count}
                         </span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </FilterSection>
+            )}
+
+            {/* Assigned to — filter attendees by which teammate(s) are on them */}
+            {teamMembers.length > 0 && (
+              <FilterSection
+                title="Assigned to"
+                count={draft.assignedTo.size}
+                defaultOpen={draft.assignedTo.size > 0}
+              >
+                <div className="flex flex-wrap gap-1.5">
+                  {teamMembers.map((tm) => {
+                    const selected = draft.assignedTo.has(tm.id)
+                    const label = tm.display_name ?? tm.email
+                    return (
+                      <button
+                        key={tm.id}
+                        type="button"
+                        onClick={() =>
+                          setDraft((d) => ({ ...d, assignedTo: toggleSet(d.assignedTo, tm.id, !selected) }))
+                        }
+                        className={`press inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-medium transition-colors ${
+                          selected
+                            ? 'bg-[var(--color-teal)] text-white border-[var(--color-teal)]'
+                            : 'bg-card border-border hover:border-[var(--color-teal)]/40 hover:bg-muted/40'
+                        }`}
+                      >
+                        {label}
                       </button>
                     )
                   })}

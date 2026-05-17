@@ -6,9 +6,31 @@ import { usePathname } from 'next/navigation'
 import { Attendee } from '@/lib/types'
 import { PriorityBadge } from '@/components/priority-badge'
 
+export type AssigneeMini = {
+  user_id: string
+  display_name: string
+  initials: string
+}
+
 interface AttendeeRowProps {
   attendee: Attendee
   style: React.CSSProperties
+  assignees?: AssigneeMini[]
+}
+
+// Small deterministic palette for assignee avatars — keeps individual
+// teammates visually consistent across the app without an explicit color
+// stored on the team_member row.
+const ASSIGNEE_COLORS = [
+  '#0F766E', // teal
+  '#D4A017', // gold
+  '#6366F1', // indigo
+  '#DB2777', // pink
+]
+function assigneeColor(userId: string) {
+  let h = 0
+  for (let i = 0; i < userId.length; i++) h = (h * 31 + userId.charCodeAt(i)) | 0
+  return ASSIGNEE_COLORS[Math.abs(h) % ASSIGNEE_COLORS.length]
 }
 
 // Pick a soft brand-aligned hue from a stable hash of the name so each avatar
@@ -30,7 +52,7 @@ function paletteFor(id: string) {
   return AVATAR_PALETTES[Math.abs(h) % AVATAR_PALETTES.length]
 }
 
-export function AttendeeRow({ attendee, style }: AttendeeRowProps) {
+export function AttendeeRow({ attendee, style, assignees = [] }: AttendeeRowProps) {
   const pathname = usePathname()
   const isActive = pathname === `/attendees/${attendee.id}`
 
@@ -88,10 +110,32 @@ export function AttendeeRow({ attendee, style }: AttendeeRowProps) {
           )}
         </div>
 
+        {/* Assignee pills — stacked initial chips, one per assigned teammate */}
+        {assignees.length > 0 && (
+          <div className="hidden sm:flex items-center -space-x-1.5 shrink-0">
+            {assignees.slice(0, 3).map((a) => (
+              <span
+                key={a.user_id}
+                title={`Assigned to ${a.display_name}`}
+                className="inline-flex items-center justify-center w-6 h-6 rounded-full text-[10px] font-semibold text-white ring-2 ring-background"
+                style={{ backgroundColor: assigneeColor(a.user_id) }}
+                aria-label={`Assigned to ${a.display_name}`}
+              >
+                {a.initials}
+              </span>
+            ))}
+            {assignees.length > 3 && (
+              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full text-[9px] font-semibold bg-muted text-foreground ring-2 ring-background">
+                +{assignees.length - 3}
+              </span>
+            )}
+          </div>
+        )}
+
         {/* Subtle chevron hint on hover (desktop) */}
         <span
           aria-hidden
-          className="hidden md:inline-block text-muted-foreground/40 group-hover:text-[var(--color-teal)] transition-colors duration-150 text-base shrink-0"
+          className="hidden md:inline-block text-muted-foreground/40 group-hover:text-[var(--color-teal)] transition-colors duration-150 text-base shrink-0 ml-1"
         >
           ›
         </span>

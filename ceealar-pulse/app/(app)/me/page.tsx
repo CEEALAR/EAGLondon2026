@@ -92,7 +92,7 @@ export default async function MePage() {
     myMeetingIds.length > 0
       ? supabase
           .from('meetings')
-          .select('id, attendee_id, owner_id, attendees(first_name, last_name), team_members(display_name)')
+          .select('id, attendee_id, owner_id, attendees(first_name, last_name), team_members!meetings_owner_id_fkey(display_name)')
           .in('id', myMeetingIds)
           .eq('status', 'want_to_meet')
           .is('scheduled_at', null)
