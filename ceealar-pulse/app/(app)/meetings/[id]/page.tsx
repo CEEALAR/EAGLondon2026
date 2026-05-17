@@ -87,7 +87,7 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
   // Fetch the full attendee profile to render under the meeting info
   const { data: attendee } = await supabase
     .from('attendees')
-    .select('biography, expertise, interests, how_others_can_help, how_i_can_help, country, career_stage, seeking_work, recruitment, swapcard_url, linkedin')
+    .select('company, job_title, biography, expertise, interests, how_others_can_help, how_i_can_help, country, career_stage, seeking_work, recruitment, swapcard_url, linkedin')
     .eq('id', (meetingRaw as { attendee_id: string }).attendee_id)
     .maybeSingle()
 
@@ -125,14 +125,28 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
       {/* Section 1 — Header */}
       <div className="space-y-2">
         <div className="flex items-start justify-between gap-2">
-          <h1 className="text-2xl font-bold">
-            <Link
-              href={`/attendees/${meeting.attendee_id}`}
-              className="hover:underline underline-offset-4"
-            >
-              {attendeeName}
-            </Link>
-          </h1>
+          <div className="min-w-0 flex-1">
+            <h1 className="text-2xl font-bold">
+              <Link
+                href={`/attendees/${meeting.attendee_id}`}
+                className="hover:underline underline-offset-4"
+              >
+                {attendeeName}
+              </Link>
+            </h1>
+            {attendee && (
+              <>
+                {(attendee.company || attendee.job_title) && (
+                  <p className="text-muted-foreground text-sm mt-1">
+                    {[attendee.company, attendee.job_title].filter(Boolean).join(' · ')}
+                  </p>
+                )}
+                {attendee.career_stage && (
+                  <p className="text-xs text-muted-foreground">{attendee.career_stage}</p>
+                )}
+              </>
+            )}
+          </div>
           {isOwner && (
             <div className="flex gap-1 shrink-0 pt-1">
               {meeting.source !== 'ical' && (
