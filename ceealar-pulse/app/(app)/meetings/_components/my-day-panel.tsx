@@ -10,17 +10,21 @@ interface Props {
  * Silent failure: if the feed is unreachable or no URL configured, renders nothing.
  */
 export async function MyDayPanel({ userId }: Props) {
-  const admin = createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-
-  const { data: row } = await admin
-    .from('user_ical_urls')
-    .select('url')
-    .eq('user_id', userId)
-    .maybeSingle()
-
+  let row: { url: string | null } | null = null
+  try {
+    const admin = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+    const { data } = await admin
+      .from('user_ical_urls')
+      .select('url')
+      .eq('user_id', userId)
+      .maybeSingle()
+    row = data
+  } catch {
+    return null
+  }
   if (!row?.url) return null
 
   let events
