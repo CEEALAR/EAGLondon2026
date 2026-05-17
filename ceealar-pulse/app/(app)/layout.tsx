@@ -5,6 +5,7 @@ import { TopNav } from '@/components/nav/top-nav'
 import { RealtimeProvider } from '@/components/realtime-provider'
 import { NotificationProvider } from '@/components/notification-provider'
 import { CalendarAutoSync } from '@/components/calendar-auto-sync'
+import { Toaster } from '@/components/ui/sonner'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -35,6 +36,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <CalendarAutoSync />
       </main>
       <BottomTabBar />
+      <Toaster position="top-center" richColors />
     </div>
   )
 }
