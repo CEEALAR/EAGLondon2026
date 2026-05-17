@@ -18,11 +18,16 @@ See: `.planning/PROJECT.md` (updated 2026-05-14)
 - SHIP-04 ✓ README.md committed and pushed (2026-05-17)
 
 **Phase 9: Calendar Integration**
-- Status: Spec'd, not started
+- Status: Implemented, awaiting human setup + UAT
 - Goal: Per-user Swapcard iCal sync — auto-import "Meet *" events as planned meetings, calendar wins on time, Pulse owns notes/status
 - Spec: ROADMAP.md → Phase 9
 - Decisions: .planning/notes/icalendar-sync-decisions.md
-- Next action: Run /gsd:plan-phase 9
+- Build: passes clean, pushed (commit fcd5364)
+- Pending human steps:
+  1. Run supabase/migrations/0005_ical_sync.sql in Supabase SQL editor
+  2. Add CRON_SECRET env var in Vercel (any random string, used by cron endpoint)
+  3. Connect iCal URL via /me → Calendar → 3-step guide
+  4. Verify auto-sync (5 min cron) and manual "Sync now" both work
 
 ## Phase History
 
