@@ -101,11 +101,11 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
   const isOwner = user.id === meeting.owner_id
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6 space-y-8">
-      {/* Back navigation */}
+    <div className="max-w-2xl mx-auto md:mx-0 px-4 py-6 md:py-0 space-y-8">
+      {/* Back navigation — only useful on mobile where sidebar is hidden */}
       <Link
         href={`/attendees/${meeting.attendee_id}`}
-        className="text-sm text-muted-foreground"
+        className="text-sm text-muted-foreground md:hidden block"
       >
         ← Back to {attendeeName}
       </Link>
