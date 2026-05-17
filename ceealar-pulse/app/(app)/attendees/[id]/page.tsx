@@ -205,7 +205,8 @@ export default async function AttendeeDetailPage(props: { params: Promise<{ id: 
           <div className="rounded-md border border-dashed border-border bg-muted/20 p-4 text-center">
             <p className="text-sm text-muted-foreground">
               No meeting yet. Use{' '}
-              <span className="font-medium text-foreground">Schedule Meeting</span> or{' '}
+              <span className="font-medium text-foreground">Schedule in Swapcard</span>,{' '}
+              <span className="font-medium text-foreground">Want to meet</span>, or{' '}
               <span className="font-medium text-foreground">Assign to colleague</span> above to start one.
             </p>
           </div>

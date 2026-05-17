@@ -6,6 +6,7 @@ import { RealtimeProvider } from '@/components/realtime-provider'
 import { CalendarAutoSync } from '@/components/calendar-auto-sync'
 import { CalendarSetupBanner } from '@/components/calendar-setup-banner'
 import { Toaster } from '@/components/ui/sonner'
+import { getUnreadFeedCount } from '@/lib/unread-feed'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -28,15 +29,17 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     avatar_url: (member?.avatar_url as string | null) ?? null,
   }
 
+  const unreadFeed = await getUnreadFeedCount(user.id)
+
   return (
     <div className="min-h-screen bg-[var(--color-cream)]">
-      <TopNav user={userForNav} />
+      <TopNav user={userForNav} unreadFeed={unreadFeed} />
       <main className="md:pt-14 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
         <CalendarSetupBanner userId={user.id} />
         <RealtimeProvider>{children}</RealtimeProvider>
         <CalendarAutoSync />
       </main>
-      <BottomTabBar />
+      <BottomTabBar unreadFeed={unreadFeed} />
       <Toaster position="top-center" richColors />
     </div>
   )

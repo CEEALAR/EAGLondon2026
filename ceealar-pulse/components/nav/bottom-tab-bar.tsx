@@ -11,7 +11,7 @@ const tabs = [
   { href: '/me', icon: User, label: 'Me' },
 ]
 
-export function BottomTabBar() {
+export function BottomTabBar({ unreadFeed = 0 }: { unreadFeed?: number }) {
   const pathname = usePathname()
 
   return (
@@ -44,11 +44,21 @@ export function BottomTabBar() {
                     className="absolute top-1.5 h-1 w-8 rounded-full bg-[var(--color-teal)] fade-up"
                   />
                 )}
-                <Icon
-                  size={22}
-                  strokeWidth={isActive ? 2.4 : 1.8}
-                  className={isActive ? 'text-[var(--color-teal)]' : 'text-muted-foreground'}
-                />
+                <div className="relative">
+                  <Icon
+                    size={22}
+                    strokeWidth={isActive ? 2.4 : 1.8}
+                    className={isActive ? 'text-[var(--color-teal)]' : 'text-muted-foreground'}
+                  />
+                  {href === '/feed' && unreadFeed > 0 && (
+                    <span
+                      aria-label={`${unreadFeed} unread`}
+                      className="absolute -top-1 -right-2 min-w-[18px] h-[18px] px-1 rounded-full bg-[var(--color-gold)] text-white text-[10px] font-bold flex items-center justify-center leading-none ring-2 ring-background tabular-nums"
+                    >
+                      {unreadFeed >= 99 ? '99+' : unreadFeed}
+                    </span>
+                  )}
+                </div>
                 <span
                   className={`text-[11px] tracking-tight ${
                     isActive

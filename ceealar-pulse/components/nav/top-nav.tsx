@@ -17,9 +17,10 @@ interface TopNavProps {
     display_name: string | null
     avatar_url: string | null
   }
+  unreadFeed?: number
 }
 
-export function TopNav({ user }: TopNavProps) {
+export function TopNav({ user, unreadFeed = 0 }: TopNavProps) {
   const pathname = usePathname()
 
   return (
@@ -48,6 +49,14 @@ export function TopNav({ user }: TopNavProps) {
               aria-current={isActive ? 'page' : undefined}
             >
               {label}
+              {href === '/feed' && unreadFeed > 0 && (
+                <span
+                  aria-label={`${unreadFeed} unread`}
+                  className="ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-[var(--color-gold)] text-white text-[10px] font-bold leading-none tabular-nums align-middle"
+                >
+                  {unreadFeed >= 99 ? '99+' : unreadFeed}
+                </span>
+              )}
               {isActive && (
                 <span
                   aria-hidden
