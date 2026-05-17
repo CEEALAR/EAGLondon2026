@@ -1,6 +1,18 @@
 import { createServerClient } from '@supabase/ssr'
+import { createClient as createAdminBase } from '@supabase/supabase-js'
 import { NextResponse, type NextRequest } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+
+const ALLOWED_DOMAIN = 'ceealar.org'
+
+/** Strict, case-insensitive match on the email's domain part. */
+function isAllowedEmail(email: string | undefined | null): boolean {
+  if (!email) return false
+  const lower = email.toLowerCase().trim()
+  const at = lower.lastIndexOf('@')
+  if (at < 0) return false
+  return lower.slice(at + 1) === ALLOWED_DOMAIN
+}
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = request.nextUrl
@@ -24,8 +36,21 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/signin`)
   }
 
-  if (!user.email?.endsWith('@ceealar.org')) {
+  if (!isAllowedEmail(user.email)) {
+    // Sign out the session and delete the auth.users row so we don't
+    // accumulate junk identities. The `hd` query param to Google is only
+    // a consent-screen hint — this is the real enforcement boundary.
     await supabase.auth.signOut()
+    try {
+      const purge = createAdminBase(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        { auth: { persistSession: false } }
+      )
+      await purge.auth.admin.deleteUser(user.id)
+    } catch {
+      // best-effort; failure here doesn't change the auth outcome
+    }
     return NextResponse.redirect(`${origin}/signin?error=unauthorized`)
   }
 

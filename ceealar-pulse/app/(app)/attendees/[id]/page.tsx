@@ -7,6 +7,7 @@ import { AttendeeActions } from '@/app/(app)/attendees/_components/attendee-acti
 import { AssignColleagueButton } from '@/app/(app)/attendees/_components/assign-colleague-button'
 import { MeetingNotesForm } from '@/app/(app)/meetings/[id]/_components/meeting-notes-form'
 import { PriorityEditor } from '@/components/priority-editor'
+import { safeHttpUrl } from '@/lib/utils'
 import type { TeamMember, MeetingStatus } from '@/lib/types'
 import { AttendeeTagsSection } from './_components/attendee-tags-section'
 import type { Tag } from '@/lib/types'
@@ -155,12 +156,12 @@ export default async function AttendeeDetailPage(props: { params: Promise<{ id: 
             {subtitle && (
               <p className="text-base text-foreground/80 tracking-tight">{subtitle}</p>
             )}
-            {(attendee.career_stage || attendee.linkedin) && (
+            {(attendee.career_stage || safeHttpUrl(attendee.linkedin)) && (
               <p className="text-sm text-muted-foreground flex items-center flex-wrap gap-x-3 gap-y-1 pt-0.5">
                 {attendee.career_stage && <span>{attendee.career_stage}</span>}
-                {attendee.linkedin && (
+                {safeHttpUrl(attendee.linkedin) && (
                   <a
-                    href={attendee.linkedin}
+                    href={safeHttpUrl(attendee.linkedin)!}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-[var(--color-teal)] hover:underline inline-flex items-center gap-0.5 font-medium"
@@ -273,21 +274,25 @@ export default async function AttendeeDetailPage(props: { params: Promise<{ id: 
         <ProfileField label="Recruitment">{attendee.recruitment ?? '-'}</ProfileField>
 
         <ProfileField label="Swapcard">
-          <a
-            href={attendee.swapcard_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-primary underline-offset-4 hover:underline"
-          >
-            View on Swapcard
-            <ExternalLink size={12} />
-          </a>
+          {safeHttpUrl(attendee.swapcard_url) ? (
+            <a
+              href={safeHttpUrl(attendee.swapcard_url)!}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-primary underline-offset-4 hover:underline"
+            >
+              View on Swapcard
+              <ExternalLink size={12} />
+            </a>
+          ) : (
+            '-'
+          )}
         </ProfileField>
 
         <ProfileField label="LinkedIn">
-          {attendee.linkedin ? (
+          {safeHttpUrl(attendee.linkedin) ? (
             <a
-              href={attendee.linkedin}
+              href={safeHttpUrl(attendee.linkedin)!}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-primary underline-offset-4 hover:underline"

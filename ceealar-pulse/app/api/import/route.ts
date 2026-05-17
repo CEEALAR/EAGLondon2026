@@ -54,6 +54,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'No file provided' }, { status: 400 })
   }
 
+  // Defence-in-depth: an unauthenticated XLSX-parser DoS isn't reachable
+  // (auth-gated), but a misconfigured client could send a giant file by
+  // mistake and OOM the function.
+  const MAX_BYTES = 25 * 1024 * 1024
+  if (file.size > MAX_BYTES) {
+    return NextResponse.json({ error: `File too large (max ${MAX_BYTES / 1024 / 1024}MB)` }, { status: 413 })
+  }
+
   // Read file buffer and parse with SheetJS
   const buffer = Buffer.from(await file.arrayBuffer())
   const workbook = XLSX.read(buffer, { type: 'buffer' })
@@ -73,6 +81,10 @@ export async function POST(req: NextRequest) {
 
   if (rows.length < 2) {
     return NextResponse.json({ inserted: 0, updated: 0, skipped: 0, errors: [] })
+  }
+  const MAX_ROWS = 5000
+  if (rows.length - 1 > MAX_ROWS) {
+    return NextResponse.json({ error: `Too many rows (max ${MAX_ROWS})` }, { status: 413 })
   }
 
   // Build dynamic header index map from row 0

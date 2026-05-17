@@ -14,7 +14,7 @@ type ResultRow = {
   updated: number
   cancelled: number
   unmatched: number
-  errors: string[]
+  error_count: number
 }
 
 export function SyncAllButton() {
@@ -64,8 +64,8 @@ export function SyncAllButton() {
                 +{r.created} new · {r.updated} updated · {r.promoted} promoted ·{' '}
                 {r.cancelled} cancelled · {r.unmatched} unmatched
               </span>
-              {r.errors.length > 0 && (
-                <span className="text-red-600"> · {r.errors.length} error{r.errors.length === 1 ? '' : 's'}</span>
+              {r.error_count > 0 && (
+                <span className="text-red-600"> · {r.error_count} error{r.error_count === 1 ? '' : 's'}</span>
               )}
             </li>
           ))}

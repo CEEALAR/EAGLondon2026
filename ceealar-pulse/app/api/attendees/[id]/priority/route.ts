@@ -31,8 +31,27 @@ export async function PATCH(
   }
 
   const admin = adminClient()
+
+  // Read previous value so the audit row captures the diff
+  const { data: prev } = await admin
+    .from('attendees')
+    .select('priority')
+    .eq('id', id)
+    .maybeSingle()
+  if (!prev) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
   const { error } = await admin.from('attendees').update({ priority }).eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Append-only audit trail — recovery from a compromised session needs this.
+  if ((prev.priority ?? null) !== priority) {
+    await admin.from('activity').insert({
+      actor_id: user.id,
+      attendee_id: id,
+      action: 'priority_changed',
+      detail: { from: prev.priority ?? null, to: priority },
+    })
+  }
 
   return NextResponse.json({ priority })
 }

@@ -35,19 +35,50 @@ export type SyncResult = {
 const WINDOW_START = Date.UTC(2026, 4, 28, 0, 0, 0)  // 28 May 2026 00:00 UTC
 const WINDOW_END   = Date.UTC(2026, 5, 1, 0, 0, 0)   // 1 Jun 2026 00:00 UTC
 
+const ALLOWED_ICAL_HOSTS = new Set(['calendar.google.com'])
+const MAX_ICAL_BYTES = 5_000_000 // 5MB — Google calendars top out far below this
+
+/**
+ * Fetch an iCal feed with SSRF defences:
+ *   - parse the URL (not just regex it) so userinfo/`@` tricks can't spoof host
+ *   - require https + allow-listed hostname
+ *   - refuse to follow redirects (an open redirect on the host would otherwise
+ *     pivot us to private/metadata endpoints)
+ *   - cap response size
+ */
 export async function fetchICalText(url: string): Promise<string> {
+  let parsed: URL
+  try {
+    parsed = new URL(url)
+  } catch {
+    throw new Error('iCal URL is not a valid URL')
+  }
+  if (parsed.protocol !== 'https:') {
+    throw new Error('iCal URL must use https://')
+  }
+  if (!ALLOWED_ICAL_HOSTS.has(parsed.hostname)) {
+    throw new Error(`iCal host not allowed: ${parsed.hostname}`)
+  }
+
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), 10_000)
   try {
-    const res = await fetch(url, {
+    const res = await fetch(parsed.toString(), {
       signal: controller.signal,
       headers: { 'User-Agent': 'CEEALAR-Pulse/1.0 (iCal sync)' },
-      redirect: 'follow',
+      redirect: 'manual',
     })
+    if (res.status >= 300 && res.status < 400) {
+      throw new Error('iCal fetch returned a redirect — refusing to follow')
+    }
     if (!res.ok) {
       throw new Error(`iCal fetch failed: HTTP ${res.status} ${res.statusText}`)
     }
-    return await res.text()
+    const text = await res.text()
+    if (text.length > MAX_ICAL_BYTES) {
+      throw new Error(`iCal response too large (${text.length} bytes)`)
+    }
+    return text
   } catch (e) {
     if (e instanceof Error && e.name === 'AbortError') {
       throw new Error('iCal fetch timed out after 10 seconds — Google may be slow or the URL is wrong')

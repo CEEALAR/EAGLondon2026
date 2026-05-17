@@ -1,4 +1,5 @@
 import { ExternalLink } from 'lucide-react'
+import { safeHttpUrl } from '@/lib/utils'
 
 type Attendee = {
   biography: string | null
@@ -29,6 +30,8 @@ function ProfileField({ label, children }: { label: string; children: React.Reac
  */
 export function AttendeeProfileSection({ attendee }: { attendee: Attendee }) {
   const isSyntheticUrl = attendee.swapcard_url.startsWith('synthetic://')
+  const swapcardSafe = safeHttpUrl(attendee.swapcard_url)
+  const linkedinSafe = safeHttpUrl(attendee.linkedin)
 
   return (
     <div className="border rounded-lg p-4 space-y-3 bg-card">
@@ -62,11 +65,11 @@ export function AttendeeProfileSection({ attendee }: { attendee: Attendee }) {
       <ProfileField label="Recruitment">{attendee.recruitment ?? '-'}</ProfileField>
 
       <ProfileField label="Swapcard">
-        {isSyntheticUrl ? (
+        {isSyntheticUrl || !swapcardSafe ? (
           <span className="text-muted-foreground">No Swapcard profile</span>
         ) : (
           <a
-            href={attendee.swapcard_url}
+            href={swapcardSafe}
             target="_blank"
             rel="noopener noreferrer"
             className="text-[var(--color-teal)] hover:underline inline-flex items-center gap-1"
@@ -77,14 +80,14 @@ export function AttendeeProfileSection({ attendee }: { attendee: Attendee }) {
       </ProfileField>
 
       <ProfileField label="LinkedIn">
-        {attendee.linkedin ? (
+        {linkedinSafe ? (
           <a
-            href={attendee.linkedin}
+            href={linkedinSafe}
             target="_blank"
             rel="noopener noreferrer"
             className="text-[var(--color-teal)] hover:underline inline-flex items-center gap-1 break-all"
           >
-            {attendee.linkedin.replace(/^https?:\/\//, '')} <ExternalLink size={12} className="shrink-0" />
+            {linkedinSafe.replace(/^https?:\/\//, '')} <ExternalLink size={12} className="shrink-0" />
           </a>
         ) : (
           '-'

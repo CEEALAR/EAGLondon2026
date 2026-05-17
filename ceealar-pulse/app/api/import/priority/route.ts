@@ -70,6 +70,11 @@ export async function POST(req: NextRequest) {
   const file = formData.get('file') as File | null
   if (!file) return NextResponse.json({ error: 'No file provided' }, { status: 400 })
 
+  const MAX_BYTES = 10 * 1024 * 1024
+  if (file.size > MAX_BYTES) {
+    return NextResponse.json({ error: `File too large (max ${MAX_BYTES / 1024 / 1024}MB)` }, { status: 413 })
+  }
+
   const buffer = Buffer.from(await file.arrayBuffer())
   const workbook = XLSX.read(buffer, { type: 'buffer' })
   const sheet = workbook.Sheets[workbook.SheetNames[0]]
@@ -77,6 +82,10 @@ export async function POST(req: NextRequest) {
 
   const rows = XLSX.utils.sheet_to_json<unknown[]>(sheet, { header: 1 })
   if (rows.length < 2) return NextResponse.json({ error: 'Sheet has no data rows' }, { status: 400 })
+  const MAX_ROWS = 2000
+  if (rows.length > MAX_ROWS) {
+    return NextResponse.json({ error: `Too many rows (max ${MAX_ROWS})` }, { status: 413 })
+  }
 
   // Header lookup
   const header = rows[HEADER_ROW_INDEX] as unknown[]

@@ -30,5 +30,13 @@ export async function POST(
     if (error.code === '23505') return NextResponse.json({ error: 'Already assigned' }, { status: 409 })
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
+
+  await admin.from('activity').insert({
+    actor_id: user.id,
+    attendee_id: attendeeId,
+    action: 'tag_added',
+    detail: { tag_id },
+  })
+
   return NextResponse.json({}, { status: 201 })
 }

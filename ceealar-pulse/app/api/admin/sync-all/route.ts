@@ -38,23 +38,30 @@ export async function POST() {
     updated: number
     cancelled: number
     unmatched: number
-    errors: string[]
+    error_count: number
   }> = []
 
   for (const t of targets) {
     const name = t.team_members?.display_name ?? t.team_members?.email ?? t.user_id
     try {
       const r = await syncUserCalendar(t.user_id, t.url!)
+      if (r.errors.length > 0) {
+        // Keep details server-side only; never leak another teammate's calendar
+        // contents (event UIDs, attendee match failures, DB messages) to the caller.
+        console.error(`[sync-all] errors for ${name}:`, r.errors)
+      }
       results.push({
         user_id: t.user_id, name,
         created: r.created, promoted: r.promoted, updated: r.updated,
-        cancelled: r.cancelled, unmatched: r.unmatched, errors: r.errors,
+        cancelled: r.cancelled, unmatched: r.unmatched,
+        error_count: r.errors.length,
       })
     } catch (e) {
+      console.error(`[sync-all] failed for ${name}:`, e)
       results.push({
         user_id: t.user_id, name,
         created: 0, promoted: 0, updated: 0, cancelled: 0, unmatched: 0,
-        errors: [e instanceof Error ? e.message : String(e)],
+        error_count: 1,
       })
     }
   }

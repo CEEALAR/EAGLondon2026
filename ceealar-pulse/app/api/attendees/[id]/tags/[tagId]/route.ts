@@ -27,5 +27,13 @@ export async function DELETE(
     .eq('tag_id', tagId)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  await admin.from('activity').insert({
+    actor_id: user.id,
+    attendee_id: attendeeId,
+    action: 'tag_removed',
+    detail: { tag_id: tagId },
+  })
+
   return new NextResponse(null, { status: 204 })
 }
