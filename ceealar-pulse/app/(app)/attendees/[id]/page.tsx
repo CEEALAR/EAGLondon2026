@@ -5,6 +5,7 @@ import { format, parseISO } from 'date-fns'
 import { createClient } from '@/lib/supabase/server'
 import { AttendeeActions } from '@/app/(app)/attendees/_components/attendee-actions'
 import { AssignColleagueButton } from '@/app/(app)/attendees/_components/assign-colleague-button'
+import { MeetingNotesForm } from '@/app/(app)/meetings/[id]/_components/meeting-notes-form'
 import { PriorityBadge } from '@/components/priority-badge'
 import type { TeamMember, MeetingStatus } from '@/lib/types'
 import { AttendeeTagsSection } from './_components/attendee-tags-section'
@@ -16,6 +17,11 @@ type MeetingRow = {
   scheduled_at: string | null
   location: string | null
   owner_id: string | null
+  why_relevant: string | null
+  talking_points: string | null
+  meeting_notes: string | null
+  comments: string | null
+  created_at: string
   team_members: { display_name: string | null } | null
   meeting_members: Array<{
     user_id: string
@@ -58,7 +64,7 @@ export default async function AttendeeDetailPage(props: { params: Promise<{ id: 
     supabase.from('team_members').select('*').order('display_name'),
     supabase
       .from('meetings')
-      .select('id, status, scheduled_at, location, owner_id, team_members!meetings_owner_id_fkey(display_name), meeting_members(user_id, team_members!meeting_members_user_id_fkey(display_name, email))')
+      .select('id, status, scheduled_at, location, owner_id, why_relevant, talking_points, meeting_notes, comments, created_at, team_members!meetings_owner_id_fkey(display_name), meeting_members(user_id, team_members!meeting_members_user_id_fkey(display_name, email))')
       .eq('attendee_id', id)
       .order('created_at', { ascending: false }),
   ])
@@ -80,6 +86,22 @@ export default async function AttendeeDetailPage(props: { params: Promise<{ id: 
 
   const teamMembers: TeamMember[] = (teamMembersRaw ?? []) as TeamMember[]
   const meetings: MeetingRow[] = (meetingsRaw ?? []) as unknown as MeetingRow[]
+
+  // "Primary" meeting for the Meeting Log section on this attendee page:
+  // prefer planned/done meetings (active), then want_to_meet, then anything;
+  // within each tier, take the most recently created.
+  const STATUS_RANK: Record<MeetingStatus, number> = {
+    planned:      0,
+    done:         1,
+    want_to_meet: 2,
+    no_show:      3,
+    cancelled:    4,
+  }
+  const primaryMeeting = [...meetings].sort((a, b) => {
+    const r = STATUS_RANK[a.status] - STATUS_RANK[b.status]
+    if (r !== 0) return r
+    return b.created_at.localeCompare(a.created_at)
+  })[0] ?? null
 
   // Soft conflict detection (SCHED-04 + SCHED-05)
   const otherMemberNames = [
@@ -148,7 +170,49 @@ export default async function AttendeeDetailPage(props: { params: Promise<{ id: 
         </div>
       </div>
 
-      {/* Section 2 — Swapcard Profile (Why they matter / How to engage live on each meeting) */}
+      {/* Section 2 — Meeting Log (edits the primary meeting with this attendee) */}
+      <div className="border rounded-lg p-4 bg-card space-y-3">
+        <div className="flex items-baseline justify-between gap-2">
+          <h2 className="text-lg font-semibold">Meeting Log</h2>
+          {primaryMeeting ? (
+            <Link
+              href={`/meetings/${primaryMeeting.id}`}
+              className="text-xs text-[var(--color-teal)] hover:underline shrink-0"
+            >
+              Open meeting →
+            </Link>
+          ) : null}
+        </div>
+        {primaryMeeting ? (
+          <>
+            <p className="text-xs text-muted-foreground -mt-1">
+              Editing the {statusLabel(primaryMeeting.status).toLowerCase()} meeting with{' '}
+              {[attendee.first_name, attendee.last_name].filter(Boolean).join(' ')}
+              {primaryMeeting.scheduled_at &&
+                ` · ${format(parseISO(primaryMeeting.scheduled_at), "d MMM 'at' HH:mm")}`}
+            </p>
+            <MeetingNotesForm
+              meetingId={primaryMeeting.id}
+              initialValues={{
+                why_relevant: primaryMeeting.why_relevant,
+                talking_points: primaryMeeting.talking_points,
+                meeting_notes: primaryMeeting.meeting_notes,
+                comments: primaryMeeting.comments,
+              }}
+            />
+          </>
+        ) : (
+          <div className="rounded-md border border-dashed border-border bg-muted/20 p-4 text-center">
+            <p className="text-sm text-muted-foreground">
+              No meeting yet. Use{' '}
+              <span className="font-medium text-foreground">Schedule Meeting</span> or{' '}
+              <span className="font-medium text-foreground">Assign to colleague</span> above to start one.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Section 3 — Swapcard Profile */}
       <div className="border rounded-lg p-4 space-y-3 bg-card">
         <h2 className="text-lg font-semibold mb-3">Profile</h2>
 
@@ -215,13 +279,13 @@ export default async function AttendeeDetailPage(props: { params: Promise<{ id: 
         </ProfileField>
       </div>
 
-      {/* Section 3 — Tags */}
+      {/* Section 4 — Tags */}
       <div className="border rounded-lg p-4 bg-card">
         <h2 className="text-lg font-semibold mb-2">Tags</h2>
         <AttendeeTagsSection attendeeId={attendee.id} initialTags={assignedTags} />
       </div>
 
-      {/* Section 4 — Team Meetings */}
+      {/* Section 5 — Team Meetings */}
       <div className="border rounded-lg p-4 bg-card">
         <h2 className="text-lg font-semibold mb-3">Team Meetings</h2>
         {meetings.length === 0 ? (
