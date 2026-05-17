@@ -90,17 +90,27 @@ export async function GET() {
   )
 
   // Query 1: All attendees with their tags
-  const { data: attendeesRaw, error: attendeesError } = await adminClient
-    .from('attendees')
-    .select('*, attendee_tags(tag_id, tags(name))')
-    .order('last_name')
-    .range(0, 9999)
-
-  if (attendeesError) {
-    return new Response(`Failed to fetch attendees: ${attendeesError.message}`, { status: 500 })
+  // Paginate to get every attendee — Supabase caps single response at 1000.
+  let attendees: AttendeeWithTags[] = []
+  try {
+    const PAGE = 1000
+    let from = 0
+    for (;;) {
+      const { data, error } = await adminClient
+        .from('attendees')
+        .select('*, attendee_tags(tag_id, tags(name))')
+        .order('last_name')
+        .range(from, from + PAGE - 1)
+      if (error) throw error
+      const batch = (data ?? []) as unknown as AttendeeWithTags[]
+      attendees = attendees.concat(batch)
+      if (batch.length < PAGE) break
+      from += PAGE
+    }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    return new Response(`Failed to fetch attendees: ${msg}`, { status: 500 })
   }
-
-  const attendees = (attendeesRaw ?? []) as unknown as AttendeeWithTags[]
 
   // Query 2: Meetings with full detail + action items, ordered by created_at desc
   // so first entry per attendee = most recent meeting.

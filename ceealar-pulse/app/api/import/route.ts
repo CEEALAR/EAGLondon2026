@@ -167,15 +167,27 @@ export async function POST(req: NextRequest) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  // Fetch existing swapcard_urls to distinguish inserts from updates
-  const { data: existingRows, error: fetchError } = await adminClient
-    .from('attendees')
-    .select('swapcard_url')
-    .range(0, 9999)
-
-  if (fetchError) {
+  // Fetch existing swapcard_urls (paginated — Supabase caps single response at 1000)
+  type ExistingRow = { swapcard_url: string }
+  let existingRows: ExistingRow[] = []
+  try {
+    const PAGE = 1000
+    let from = 0
+    for (;;) {
+      const { data, error } = await adminClient
+        .from('attendees')
+        .select('swapcard_url')
+        .range(from, from + PAGE - 1)
+      if (error) throw error
+      const batch = (data ?? []) as ExistingRow[]
+      existingRows = existingRows.concat(batch)
+      if (batch.length < PAGE) break
+      from += PAGE
+    }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
     return NextResponse.json(
-      { error: `Failed to fetch existing attendees: ${fetchError.message}` },
+      { error: `Failed to fetch existing attendees: ${msg}` },
       { status: 500 }
     )
   }

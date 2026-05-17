@@ -119,11 +119,8 @@ export default async function MePage() {
   // Fetch lightweight attendee list only if we have unmatched events to resolve
   let attendees: AttendeeMini[] = []
   if (unmatchedEvents.length > 0) {
-    const { data } = await admin
-      .from('attendees')
-      .select('id, first_name, last_name, company')
-      .range(0, 9999)
-    attendees = (data ?? []) as AttendeeMini[]
+    const { fetchAllAttendees } = await import('@/lib/fetch-all-attendees')
+    attendees = await fetchAllAttendees<AttendeeMini>(admin, 'id, first_name, last_name, company')
   }
 
   return (
