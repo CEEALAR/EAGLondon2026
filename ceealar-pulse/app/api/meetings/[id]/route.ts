@@ -15,8 +15,8 @@ export async function PATCH(
   }
 
   let body: Partial<{
-    prep_note: string
-    summary: string
+    why_relevant: string
+    talking_points: string
     meeting_notes: string
     comments: string
     follow_up_date: string | null
@@ -44,11 +44,6 @@ export async function PATCH(
     return NextResponse.json({ error: 'Meeting not found' }, { status: 404 })
   }
 
-  // prep_note is owner-only
-  if ('prep_note' in body && current.owner_id !== user.id) {
-    return NextResponse.json({ error: 'Only the meeting owner can edit the prep note' }, { status: 403 })
-  }
-
   // status changes to done/no_show/cancelled require confirmation — but we trust the UI handles that
   const admin = createAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -58,7 +53,7 @@ export async function PATCH(
   // Build update object — only include provided fields
   const updates: Record<string, unknown> = {}
   const allowedFields = [
-    'prep_note', 'summary', 'meeting_notes', 'comments',
+    'why_relevant', 'talking_points', 'meeting_notes', 'comments',
     'follow_up_date', 'status', 'location', 'scheduled_at',
     'duration_minutes', 'owner_id'
   ]

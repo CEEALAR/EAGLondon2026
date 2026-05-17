@@ -20,8 +20,8 @@ type MeetingRow = {
   scheduled_at: string | null
   duration_minutes: number | null
   location: string | null
-  prep_note: string | null
-  summary: string | null
+  why_relevant: string | null
+  talking_points: string | null
   meeting_notes: string | null
   comments: string | null
   follow_up_date: string | null
@@ -92,12 +92,6 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
     .maybeSingle()
 
   const meeting = meetingRaw as unknown as MeetingRow
-
-  // Enforce prep_note privacy in app code (replaces the meetings_view CASE logic):
-  // owner sees their own prep_note any time; everyone sees it once status='done'.
-  if (meeting.owner_id !== user.id && meeting.status !== 'done') {
-    meeting.prep_note = null
-  }
   const actionItems: ActionItem[] = (actionItemsRaw ?? []) as ActionItem[]
   const teamMembers: TeamMember[] = (teamMembersRaw ?? []) as TeamMember[]
   const meetingMembers = ((meetingMembersRaw ?? []) as unknown as Array<{
@@ -212,11 +206,9 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
         <h2 className="text-base font-semibold">Meeting Log</h2>
         <MeetingNotesForm
           meetingId={id}
-          isOwner={isOwner}
-          status={meeting.status}
           initialValues={{
-            prep_note: meeting.prep_note,
-            summary: meeting.summary,
+            why_relevant: meeting.why_relevant,
+            talking_points: meeting.talking_points,
             meeting_notes: meeting.meeting_notes,
             comments: meeting.comments,
           }}

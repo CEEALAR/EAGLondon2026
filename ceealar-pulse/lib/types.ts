@@ -51,9 +51,8 @@ export type Meeting = {
   scheduled_at: string | null
   duration_minutes: number | null
   location: string | null
-  /** prep_note is null for non-owners when status != 'done' (enforced by meetings_view) */
-  prep_note: string | null
-  summary: string | null
+  why_relevant: string | null
+  talking_points: string | null
   meeting_notes: string | null
   comments: string | null
   follow_up_date: string | null

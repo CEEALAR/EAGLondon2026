@@ -5,11 +5,9 @@ import { Textarea } from '@/components/ui/textarea'
 
 interface MeetingNotesFormProps {
   meetingId: string
-  isOwner: boolean
-  status: string
   initialValues: {
-    prep_note: string | null
-    summary: string | null
+    why_relevant: string | null
+    talking_points: string | null
     meeting_notes: string | null
     comments: string | null
   }
@@ -18,10 +16,11 @@ interface MeetingNotesFormProps {
 interface FieldProps {
   label: string
   value: string
+  placeholder?: string
   onSave: (value: string) => Promise<void>
 }
 
-function AutosaveTextarea({ label, value: initialValue, onSave }: FieldProps) {
+function AutosaveTextarea({ label, value: initialValue, placeholder, onSave }: FieldProps) {
   const [value, setValue] = useState(initialValue)
   const [saved, setSaved] = useState(false)
 
@@ -36,23 +35,21 @@ function AutosaveTextarea({ label, value: initialValue, onSave }: FieldProps) {
     <div className="space-y-1">
       <div className="flex items-center justify-between">
         <label className="text-sm font-medium text-foreground">{label}</label>
-        {saved && (
-          <span className="text-xs text-green-600">Saved</span>
-        )}
+        {saved && <span className="text-xs text-green-600">Saved</span>}
       </div>
       <Textarea
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onBlur={handleBlur}
         rows={4}
-        placeholder={`Enter ${label.toLowerCase()}…`}
+        placeholder={placeholder ?? `Enter ${label.toLowerCase()}…`}
         className="resize-none"
       />
     </div>
   )
 }
 
-export function MeetingNotesForm({ meetingId, isOwner, status, initialValues }: MeetingNotesFormProps) {
+export function MeetingNotesForm({ meetingId, initialValues }: MeetingNotesFormProps) {
   async function save(field: string, value: string) {
     await fetch(`/api/meetings/${meetingId}`, {
       method: 'PATCH',
@@ -63,17 +60,17 @@ export function MeetingNotesForm({ meetingId, isOwner, status, initialValues }: 
 
   return (
     <div className="space-y-4">
-      {(isOwner || status === 'done') && (
-        <AutosaveTextarea
-          label={isOwner ? 'Prep Note (private until meeting is done)' : 'Prep Note'}
-          value={initialValues.prep_note ?? ''}
-          onSave={(v) => save('prep_note', v)}
-        />
-      )}
       <AutosaveTextarea
-        label="Summary"
-        value={initialValues.summary ?? ''}
-        onSave={(v) => save('summary', v)}
+        label="Why Relevant"
+        value={initialValues.why_relevant ?? ''}
+        placeholder="Why do we want to meet this person? Strategic context, mutual goals…"
+        onSave={(v) => save('why_relevant', v)}
+      />
+      <AutosaveTextarea
+        label="Talking Points"
+        value={initialValues.talking_points ?? ''}
+        placeholder="Specific things to bring up — questions, asks, intros…"
+        onSave={(v) => save('talking_points', v)}
       />
       <AutosaveTextarea
         label="Meeting Notes"
