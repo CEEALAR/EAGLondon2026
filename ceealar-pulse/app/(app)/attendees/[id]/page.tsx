@@ -5,6 +5,7 @@ import { format, parseISO } from 'date-fns'
 import { createClient } from '@/lib/supabase/server'
 import { StrategicContextForm } from '@/app/(app)/attendees/_components/strategic-context-form'
 import { MeetingCreateDialog } from '@/app/(app)/attendees/_components/meeting-create-dialog'
+import { AssignColleagueButton } from '@/app/(app)/attendees/_components/assign-colleague-button'
 import type { TeamMember, MeetingStatus } from '@/lib/types'
 import { AttendeeTagsSection } from './_components/attendee-tags-section'
 import type { Tag } from '@/lib/types'
@@ -118,7 +119,7 @@ export default async function AttendeeDetailPage(props: { params: Promise<{ id: 
         {attendee.career_stage && (
           <p className="text-sm text-muted-foreground">{attendee.career_stage}</p>
         )}
-        <div className="pt-2">
+        <div className="pt-2 flex flex-wrap gap-2">
           {user && (
             <MeetingCreateDialog
               attendeeId={attendee.id}
@@ -126,6 +127,13 @@ export default async function AttendeeDetailPage(props: { params: Promise<{ id: 
               currentUserId={user.id}
               teamMembers={teamMembers}
               wantToMeetOwners={wantToMeetOwners}
+            />
+          )}
+          {user && (
+            <AssignColleagueButton
+              attendeeId={attendee.id}
+              currentUserId={user.id}
+              teamMembers={teamMembers}
             />
           )}
         </div>

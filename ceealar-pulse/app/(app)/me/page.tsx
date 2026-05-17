@@ -1,6 +1,26 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { MyActionItems } from './_components/my-action-items'
+
+type RawActionItem = {
+  id: string
+  text: string
+  done: boolean
+  meeting_id: string
+  meetings: {
+    id: string
+    attendees: { first_name: string | null; last_name: string | null } | null
+  } | null
+}
+
+type WantToMeetRow = {
+  id: string
+  attendee_id: string
+  owner_id: string | null
+  attendees: { first_name: string | null; last_name: string | null } | null
+  team_members: { display_name: string | null } | null
+}
 
 export default async function MePage() {
   const supabase = await createClient()
@@ -10,7 +30,7 @@ export default async function MePage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: member } = await (supabase as any)
     .from('team_members')
-    .select('display_name, avatar_url, email, created_at')
+    .select('display_name, avatar_url, email')
     .eq('id', user.id)
     .single()
 
@@ -19,6 +39,37 @@ export default async function MePage() {
   const avatarUrl = member?.avatar_url as string | null
   const initial = name[0]?.toUpperCase() ?? '?'
 
+  // My meeting IDs (via meeting_members)
+  const { data: myMeetingLinks } = await supabase
+    .from('meeting_members')
+    .select('meeting_id')
+    .eq('user_id', user.id)
+
+  const myMeetingIds = (myMeetingLinks ?? []).map((r: { meeting_id: string }) => r.meeting_id)
+
+  const [actionItemsResult, wantToMeetResult] = await Promise.all([
+    myMeetingIds.length > 0
+      ? supabase
+          .from('action_items')
+          .select('id, text, done, meeting_id, meetings(id, attendees(first_name, last_name))')
+          .in('meeting_id', myMeetingIds)
+          .order('created_at', { ascending: true })
+      : Promise.resolve({ data: [] }),
+
+    myMeetingIds.length > 0
+      ? supabase
+          .from('meetings')
+          .select('id, attendee_id, owner_id, attendees(first_name, last_name), team_members(display_name)')
+          .in('id', myMeetingIds)
+          .eq('status', 'want_to_meet')
+          .is('scheduled_at', null)
+          .order('created_at', { ascending: false })
+      : Promise.resolve({ data: [] }),
+  ])
+
+  const actionItems = (actionItemsResult.data ?? []) as unknown as RawActionItem[]
+  const wantToMeets = (wantToMeetResult.data ?? []) as unknown as WantToMeetRow[]
+
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
       <h1 className="text-xl font-semibold text-foreground">Me</h1>
@@ -26,11 +77,7 @@ export default async function MePage() {
       {/* Profile card */}
       <div className="border rounded-lg p-5 bg-card flex items-center gap-4">
         {avatarUrl ? (
-          <img
-            src={avatarUrl}
-            alt={name}
-            className="w-14 h-14 rounded-full object-cover shrink-0"
-          />
+          <img src={avatarUrl} alt={name} className="w-14 h-14 rounded-full object-cover shrink-0" />
         ) : (
           <div className="w-14 h-14 rounded-full bg-[var(--color-teal)]/10 flex items-center justify-center shrink-0">
             <span className="text-xl font-semibold text-[var(--color-teal)]">{initial}</span>
@@ -40,6 +87,43 @@ export default async function MePage() {
           <p className="font-semibold text-base truncate">{name}</p>
           <p className="text-sm text-muted-foreground truncate">{email}</p>
         </div>
+      </div>
+
+      {/* Action items */}
+      <div className="border rounded-lg p-4 bg-card space-y-3">
+        <h2 className="text-base font-semibold">Action Items</h2>
+        {actionItems.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No action items yet.</p>
+        ) : (
+          <MyActionItems initialItems={actionItems} />
+        )}
+      </div>
+
+      {/* Want to meet (unscheduled) */}
+      <div className="border rounded-lg p-4 bg-card space-y-3">
+        <h2 className="text-base font-semibold">Want to Meet</h2>
+        <p className="text-xs text-muted-foreground -mt-1">Assigned to you, no time set yet</p>
+        {wantToMeets.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Nothing here yet.</p>
+        ) : (
+          <ul className="space-y-2">
+            {wantToMeets.map((m) => {
+              const atName = [m.attendees?.first_name, m.attendees?.last_name].filter(Boolean).join(' ') || 'Unknown'
+              const ownerLabel = m.owner_id === user.id ? 'You' : (m.team_members?.display_name ?? 'Someone')
+              return (
+                <li key={m.id}>
+                  <Link
+                    href={`/meetings/${m.id}`}
+                    className="flex items-center justify-between border rounded-lg px-3 py-2.5 hover:bg-muted/50 transition-colors"
+                  >
+                    <span className="text-sm font-medium">{atName}</span>
+                    <span className="text-xs text-muted-foreground">via {ownerLabel}</span>
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+        )}
       </div>
 
       {/* Tags */}

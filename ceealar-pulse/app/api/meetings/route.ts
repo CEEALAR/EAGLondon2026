@@ -54,6 +54,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error?.message ?? 'Insert failed' }, { status: 500 })
   }
 
+  // Add owner to meeting_members (makes them an assignee)
+  await admin
+    .from('meeting_members')
+    .upsert({ meeting_id: meeting.id, user_id: meeting.owner_id, added_by: user.id }, { onConflict: 'meeting_id,user_id', ignoreDuplicates: true })
+
   // Write activity row
   await admin.from('activity').insert({
     actor_id: user.id,

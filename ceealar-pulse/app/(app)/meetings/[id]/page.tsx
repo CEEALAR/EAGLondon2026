@@ -8,6 +8,7 @@ import { StatusChanger } from './_components/status-changer'
 import { FollowUpDate } from './_components/follow-up-date'
 import { DeleteMeetingButton } from './_components/delete-meeting-button'
 import { EditMeetingButton } from './_components/edit-meeting-button'
+import { MeetingMembersSection } from './_components/meeting-members-section'
 import type { ActionItem, MeetingStatus, TeamMember } from '@/lib/types'
 
 type MeetingRow = {
@@ -49,6 +50,7 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
     { data: meetingRaw },
     { data: actionItemsRaw },
     { data: teamMembersRaw },
+    { data: meetingMembersRaw },
   ] = await Promise.all([
     supabase
       .from('meetings_view')
@@ -67,6 +69,10 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
     supabase
       .from('team_members')
       .select('id, display_name, email'),
+    supabase
+      .from('meeting_members')
+      .select('user_id, team_members(display_name, email)')
+      .eq('meeting_id', id),
   ])
 
   if (!meetingRaw) notFound()
@@ -74,6 +80,14 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
   const meeting = meetingRaw as unknown as MeetingRow
   const actionItems: ActionItem[] = (actionItemsRaw ?? []) as ActionItem[]
   const teamMembers: TeamMember[] = (teamMembersRaw ?? []) as TeamMember[]
+  const meetingMembers = ((meetingMembersRaw ?? []) as unknown as Array<{
+    user_id: string
+    team_members: { display_name: string | null; email: string } | null
+  }>).map((r) => ({
+    user_id: r.user_id,
+    display_name: r.team_members?.display_name ?? null,
+    email: r.team_members?.email ?? '',
+  }))
 
   const attendeeName =
     [meeting.attendees?.first_name, meeting.attendees?.last_name].filter(Boolean).join(' ') ||
@@ -150,7 +164,17 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
         )}
       </div>
 
-      {/* Section 3 — Notes (autosave) */}
+      {/* Section 3 — Assignees */}
+      <div className="border rounded-lg p-4 bg-card space-y-2">
+        <h2 className="text-base font-semibold">Assigned to</h2>
+        <MeetingMembersSection
+          meetingId={id}
+          initialMembers={meetingMembers}
+          allTeamMembers={teamMembers}
+        />
+      </div>
+
+      {/* Section 4 — Notes (autosave) */}
       <div className="border rounded-lg p-4 bg-card space-y-2">
         <h2 className="text-base font-semibold">Meeting Log</h2>
         <MeetingNotesForm
@@ -166,7 +190,7 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
         />
       </div>
 
-      {/* Section 4 — Action Items */}
+      {/* Section 5 — Action Items */}
       <div className="border rounded-lg p-4 bg-card space-y-3">
         <h2 className="text-base font-semibold">Action Items</h2>
         <ActionItemsSection
@@ -175,7 +199,7 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
         />
       </div>
 
-      {/* Section 5 — Follow-up Date */}
+      {/* Section 6 — Follow-up Date */}
       <div className="border rounded-lg p-4 bg-card">
         <FollowUpDate meetingId={id} initialDate={meeting.follow_up_date} />
       </div>
