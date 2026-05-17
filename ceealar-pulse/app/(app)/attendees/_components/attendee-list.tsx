@@ -43,6 +43,72 @@ const emptyFilters = (): FilterState => ({
   seekingWork: new Set(),
 })
 
+// ── Persistence ───────────────────────────────────────────────────────────
+// Keep query, filter selections, and sort mode across navigations within the
+// same browser. Sets aren't JSON-serializable so they round-trip via arrays.
+const STORAGE_KEY = 'pulse.attendees.prefs.v1'
+
+type PersistedPrefs = {
+  query: string
+  sortMode: SortMode
+  filters: {
+    tagIds: string[]
+    priority: number[]
+    expertise: string[]
+    interests: string[]
+    careerStage: string[]
+    country: string[]
+    seekingWork: string[]
+  }
+}
+
+function loadPrefs(): PersistedPrefs | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as PersistedPrefs
+    if (!parsed || typeof parsed !== 'object') return null
+    return parsed
+  } catch {
+    return null
+  }
+}
+
+function savePrefs(prefs: PersistedPrefs) {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs))
+  } catch {
+    // quota or privacy mode — silent
+  }
+}
+
+function filtersToJson(f: FilterState): PersistedPrefs['filters'] {
+  return {
+    tagIds:       [...f.tagIds],
+    priority:     [...f.priority],
+    expertise:    [...f.expertise],
+    interests:    [...f.interests],
+    careerStage:  [...f.careerStage],
+    country:      [...f.country],
+    seekingWork:  [...f.seekingWork],
+  }
+}
+
+function filtersFromJson(j: PersistedPrefs['filters'] | undefined): FilterState {
+  if (!j) return emptyFilters()
+  return {
+    tagIds:       new Set(j.tagIds ?? []),
+    priority:     new Set(j.priority ?? []),
+    expertise:    new Set(j.expertise ?? []),
+    interests:    new Set(j.interests ?? []),
+    careerStage:  new Set(j.careerStage ?? []),
+    country:      new Set(j.country ?? []),
+    seekingWork:  new Set(j.seekingWork ?? []),
+  }
+}
+
 function activeCount(f: FilterState): number {
   return (
     f.tagIds.size +
@@ -62,7 +128,30 @@ export function AttendeeList({ attendees, allTags }: AttendeeListProps) {
   const [draft, setDraft] = useState<FilterState>(emptyFilters())
   const [applied, setApplied] = useState<FilterState>(emptyFilters())
   const [sortMode, setSortMode] = useState<SortMode>('name')
+  const [prefsLoaded, setPrefsLoaded] = useState(false)
   const searchInputRef = useRef<HTMLInputElement>(null)
+
+  // Restore persisted prefs on mount (after hydration so SSR markup matches)
+  useEffect(() => {
+    const p = loadPrefs()
+    if (p) {
+      if (typeof p.query === 'string') {
+        setQuery(p.query)
+        setDebouncedQuery(p.query)
+      }
+      if (p.sortMode === 'name' || p.sortMode === 'priority') setSortMode(p.sortMode)
+      const restored = filtersFromJson(p.filters)
+      setApplied(restored)
+      setDraft(restored)
+    }
+    setPrefsLoaded(true)
+  }, [])
+
+  // Persist whenever the user-visible prefs change
+  useEffect(() => {
+    if (!prefsLoaded) return
+    savePrefs({ query, sortMode, filters: filtersToJson(applied) })
+  }, [prefsLoaded, query, sortMode, applied])
 
   // ⌘K / Ctrl-K focuses the search bar from anywhere on /attendees
   useEffect(() => {
