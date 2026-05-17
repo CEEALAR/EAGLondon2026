@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
-import { SlidersHorizontal, X, ChevronDown } from 'lucide-react'
+import { SlidersHorizontal, X, ChevronDown, Search } from 'lucide-react'
 import { PRIORITY_LABELS } from '@/components/priority-badge'
 
 interface AttendeeListProps {
@@ -54,6 +54,23 @@ export function AttendeeList({ attendees, allTags }: AttendeeListProps) {
   const [filterOpen, setFilterOpen] = useState(false)
   const [draft, setDraft] = useState<FilterState>(emptyFilters())
   const [applied, setApplied] = useState<FilterState>(emptyFilters())
+  const searchInputRef = useRef<HTMLInputElement>(null)
+
+  // ⌘K / Ctrl-K focuses the search bar from anywhere on /attendees
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        searchInputRef.current?.focus()
+        searchInputRef.current?.select()
+      } else if (e.key === 'Escape' && document.activeElement === searchInputRef.current) {
+        setQuery('')
+        searchInputRef.current?.blur()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   // Debounce search query by 200ms
   useEffect(() => {
@@ -171,27 +188,40 @@ export function AttendeeList({ attendees, allTags }: AttendeeListProps) {
   return (
     <div className="flex flex-col h-[calc(100vh-56px-64px)] md:h-[calc(100vh-56px)]">
       {/* Search bar row */}
-      <div className="flex gap-2 px-4 py-2 sticky top-0 bg-background z-10 border-b border-border shrink-0">
+      <div className="flex gap-2 px-4 py-2 sticky top-0 bg-background/85 backdrop-blur-md z-10 border-b border-border/70 shrink-0">
         <div className="relative flex-1">
+          {/* Left search icon */}
+          <Search
+            size={15}
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/70"
+            strokeWidth={2.2}
+          />
           <Input
+            ref={searchInputRef}
             placeholder="Search by name or company…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="pr-8"
+            className="pl-9 pr-16 h-10 text-[14px] rounded-full bg-card/60 border-border/60 focus-visible:border-[var(--color-teal)]/40 focus-visible:ring-[var(--color-teal)]/15"
+            aria-label="Search attendees"
           />
-          {query && (
+          {query ? (
             <button
               onClick={() => setQuery('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-muted/70 hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
               aria-label="Clear search"
             >
-              <X size={14} />
+              <X size={13} />
             </button>
+          ) : (
+            <kbd
+              aria-hidden
+              className="hidden md:inline-flex absolute right-2.5 top-1/2 -translate-y-1/2 items-center gap-0.5 rounded border border-border/60 bg-muted/30 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground tracking-tight"
+            >
+              ⌘K
+            </kbd>
           )}
         </div>
-        <Button
-          variant={appliedCount > 0 ? 'default' : 'outline'}
-          size="icon"
+        <button
           onClick={() => {
             setDraft({
               tagIds: new Set(applied.tagIds),
@@ -205,15 +235,19 @@ export function AttendeeList({ attendees, allTags }: AttendeeListProps) {
             setFilterOpen(true)
           }}
           aria-label="Filters"
-          className="relative"
+          className={`press relative h-10 w-10 rounded-full flex items-center justify-center transition-all ${
+            appliedCount > 0
+              ? 'bg-[var(--color-teal)] text-white shadow-md hover:bg-[var(--color-teal-deep)]'
+              : 'bg-card/60 border border-border/60 text-muted-foreground hover:text-foreground hover:bg-card/90'
+          }`}
         >
-          <SlidersHorizontal size={16} />
+          <SlidersHorizontal size={16} strokeWidth={2.2} />
           {appliedCount > 0 && (
-            <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] rounded-full w-4 h-4 flex items-center justify-center leading-none">
+            <span className="absolute -top-1 -right-1 bg-[var(--color-gold)] text-white text-[10px] font-bold rounded-full min-w-5 h-5 px-1 flex items-center justify-center leading-none border-2 border-background">
               {appliedCount}
             </span>
           )}
-        </Button>
+        </button>
       </div>
 
       {/* Result count strip */}

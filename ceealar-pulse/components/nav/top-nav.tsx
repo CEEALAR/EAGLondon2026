@@ -23,7 +23,7 @@ export function TopNav({ user }: TopNavProps) {
   const pathname = usePathname()
 
   return (
-    <header className="hidden md:flex fixed top-0 left-0 right-0 z-50 h-14 bg-white/85 backdrop-blur-xl border-b border-border/70 px-6 items-center justify-between">
+    <header className="hidden md:flex fixed top-0 left-0 right-0 z-50 h-14 bg-background/85 backdrop-blur-xl border-b border-border/70 px-6 items-center justify-between">
       <Link href="/attendees" className="flex items-baseline gap-2 group">
         <span className="font-display italic text-xl text-[var(--color-teal)] tracking-tight group-hover:text-[var(--color-teal-deep)] transition-colors">
           Pulse

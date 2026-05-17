@@ -32,7 +32,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <div className="min-h-screen bg-[var(--color-cream)]">
       <TopNav user={userForNav} />
       <main className="md:pt-14 pb-16 md:pb-0">
-        <NotificationProvider><RealtimeProvider>{children}</RealtimeProvider></NotificationProvider>
+        <NotificationProvider>
+          <RealtimeProvider>{children}</RealtimeProvider>
+        </NotificationProvider>
         <CalendarAutoSync />
       </main>
       <BottomTabBar />

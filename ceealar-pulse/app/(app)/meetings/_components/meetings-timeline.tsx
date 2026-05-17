@@ -31,10 +31,14 @@ const HOUR_HEIGHT = 60
 
 function statusStyle(s: MeetingStatus): string {
   switch (s) {
-    case 'planned':      return 'bg-[#0F766E] text-white'
-    case 'done':         return 'bg-[#D4A017] text-white'
-    case 'want_to_meet': return 'bg-gray-100 text-gray-700 border border-gray-300'
-    default:             return 'bg-muted text-muted-foreground border border-border'
+    case 'planned':
+      return 'bg-gradient-to-br from-[#14958B] to-[#0B5953] text-white shadow-sm ring-1 ring-white/10'
+    case 'done':
+      return 'bg-gradient-to-br from-[#E8B73E] to-[#B8870E] text-white shadow-sm ring-1 ring-white/10'
+    case 'want_to_meet':
+      return 'bg-white/70 backdrop-blur-sm text-gray-700 border border-gray-300 shadow-sm'
+    default:
+      return 'bg-muted/60 text-muted-foreground border border-border/60'
   }
 }
 
@@ -42,14 +46,14 @@ function MeetingBlock({ meeting }: { meeting: TimelineMeeting }) {
   const date = parseISO(meeting.scheduled_at)
   const topPx = (date.getHours() - HOUR_START) * HOUR_HEIGHT + date.getMinutes()
   return (
-    <Link href={`/meetings/${meeting.id}`}>
+    <Link href={`/meetings/${meeting.id}`} aria-label={`Meeting with ${meeting.attendee_name}`}>
       <div
-        className={`absolute left-0.5 right-0.5 rounded px-1 py-0.5 text-[11px] leading-tight overflow-hidden hover:opacity-80 transition-opacity ${statusStyle(meeting.status)}`}
+        className={`press absolute left-0.5 right-0.5 rounded-md px-1.5 py-0.5 text-[11px] leading-tight overflow-hidden cursor-pointer transition-all duration-200 hover:-translate-y-px hover:shadow-md ${statusStyle(meeting.status)}`}
         style={{ top: `${topPx}px`, height: '29px' }}
       >
-        <p className="font-medium truncate">{meeting.attendee_name}</p>
+        <p className="font-semibold truncate tracking-tight">{meeting.attendee_name}</p>
         {meeting.location && (
-          <p className="truncate opacity-75 text-[10px]">{meeting.location}</p>
+          <p className="truncate opacity-80 text-[10px]">{meeting.location}</p>
         )}
       </div>
     </Link>
@@ -103,16 +107,16 @@ export function MeetingsTimeline({ meetings, teamMembers }: MeetingsTimelineProp
 
   return (
     <div>
-      {/* Day tabs */}
-      <div className="flex gap-0 border-b mb-4">
+      {/* Day tabs — segmented control */}
+      <div className="inline-flex p-1 rounded-full bg-muted/50 mb-4 gap-0.5">
         {CONF_DAYS.map((day) => (
           <button
             key={day.value}
             onClick={() => setSelectedDay(day.value)}
-            className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
+            className={`press px-4 py-1.5 text-sm font-medium rounded-full transition-all duration-200 ${
               selectedDay === day.value
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground'
+                ? 'bg-white text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             {day.label}

@@ -108,24 +108,25 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  /* Warm dark mode — slight teal-tinted blacks, never pure gray */
+  --background: oklch(0.16 0.012 220);
+  --foreground: oklch(0.96 0.01 80);
+  --card: oklch(0.21 0.012 220);
+  --card-foreground: oklch(0.96 0.01 80);
+  --popover: oklch(0.21 0.012 220);
+  --popover-foreground: oklch(0.96 0.01 80);
+  --primary: oklch(0.65 0.14 180);
+  --primary-foreground: oklch(0.15 0.02 220);
+  --secondary: oklch(0.28 0.012 220);
+  --secondary-foreground: oklch(0.96 0.01 80);
+  --muted: oklch(0.26 0.012 220);
+  --muted-foreground: oklch(0.7 0.015 60);
+  --accent: oklch(0.28 0.012 220);
+  --accent-foreground: oklch(0.96 0.01 80);
+  --destructive: oklch(0.65 0.2 22);
+  --border: oklch(1 0 0 / 8%);
+  --input: oklch(1 0 0 / 12%);
+  --ring: oklch(0.65 0.14 180);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -155,6 +156,12 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+  }
+  .dark body {
+    background-color: var(--background);
+    /* Deeper, cooler glow accents in dark mode */
+    background-image: radial-gradient(at 100% 0%, oklch(0.3 0.05 180 / 0.4) 0%, transparent 55%),
+                      radial-gradient(at 0% 100%, oklch(0.28 0.06 60 / 0.25) 0%, transparent 55%);
   }
   html {
     @apply font-sans;
@@ -226,5 +233,30 @@
   @media (prefers-reduced-motion: reduce) {
     .press, .lift, .fade-up, .shimmer { animation: none !important; transition: none !important; }
     .press:active, .lift:hover { transform: none !important; }
+  }
+}
+
+/* Smooth native View Transitions for route changes */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 220ms;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+::view-transition-old(root) {
+  animation-name: vt-fade-out;
+}
+::view-transition-new(root) {
+  animation-name: vt-fade-in;
+}
+@keyframes vt-fade-out {
+  to { opacity: 0; transform: translateY(-4px); }
+}
+@keyframes vt-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none !important;
   }
 }

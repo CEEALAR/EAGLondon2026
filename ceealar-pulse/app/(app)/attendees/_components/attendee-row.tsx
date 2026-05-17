@@ -48,7 +48,7 @@ export function AttendeeRow({ attendee, style }: AttendeeRowProps) {
     <div style={style} className="absolute w-full">
       <Link
         href={`/attendees/${attendee.id}`}
-        className="press group flex items-center w-full h-[72px] px-4 gap-3 border-b border-border/60 cursor-pointer hover:bg-white/60 transition-colors duration-150"
+        className="press group flex items-center w-full h-[72px] px-4 gap-3 border-b border-border/60 cursor-pointer hover:bg-card/60 transition-colors duration-150"
       >
         {/* Gradient avatar with subtle ring */}
         <div

@@ -20,7 +20,7 @@ export function BottomTabBar() {
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       {/* Frosted glass surface */}
-      <div className="absolute inset-0 bg-white/85 backdrop-blur-xl border-t border-border/70" />
+      <div className="absolute inset-0 bg-background/85 backdrop-blur-xl border-t border-border/70" />
       <ul className="relative flex justify-around items-stretch h-full px-1">
         {tabs.map(({ href, icon: Icon, label }) => {
           const isActive = pathname === href || pathname.startsWith(href + '/')
