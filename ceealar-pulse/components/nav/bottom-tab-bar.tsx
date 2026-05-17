@@ -16,8 +16,14 @@ export function BottomTabBar() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 h-16 md:hidden"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      className="fixed inset-x-0 bottom-0 z-[100] h-16 md:hidden"
+      style={{
+        paddingBottom: 'env(safe-area-inset-bottom)',
+        // Force GPU layer + own stacking context so iOS Safari doesn't
+        // briefly detach the fixed nav during URL-bar / overscroll events.
+        transform: 'translateZ(0)',
+        willChange: 'transform',
+      }}
     >
       {/* Frosted glass surface */}
       <div className="absolute inset-0 bg-background/85 backdrop-blur-xl border-t border-border/70" />

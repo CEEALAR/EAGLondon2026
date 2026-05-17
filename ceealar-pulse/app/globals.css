@@ -114,13 +114,23 @@
   body {
     @apply bg-background text-foreground antialiased;
     background-color: var(--color-cream);
-    /* Subtle warm gradient backdrop for depth */
-    background-image: radial-gradient(at 100% 0%, oklch(0.95 0.04 80 / 0.5) 0%, transparent 50%),
-                      radial-gradient(at 0% 100%, oklch(0.94 0.03 180 / 0.35) 0%, transparent 50%);
-    background-attachment: fixed;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    position: relative;
+  }
+  /* Fixed-position pseudo-element for the warm gradient backdrop.
+     Avoids `background-attachment: fixed` on body, which causes
+     `position: fixed` children (like the bottom tab bar) to slide
+     off-screen on iOS Safari as the URL bar collapses. */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image: radial-gradient(at 100% 0%, oklch(0.95 0.04 80 / 0.5) 0%, transparent 50%),
+                      radial-gradient(at 0% 100%, oklch(0.94 0.03 180 / 0.35) 0%, transparent 50%);
   }
   html {
     @apply font-sans;
