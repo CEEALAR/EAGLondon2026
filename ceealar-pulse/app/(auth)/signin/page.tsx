@@ -162,23 +162,24 @@ export default function SignInPage() {
       className="min-h-dvh flex flex-col items-center justify-center gap-10 px-4 relative overflow-hidden isolate"
       style={{ backgroundColor: 'var(--color-cream)' }}
     >
-      {/* Hero image — slow zoom for cinematic feel */}
+      {/* Hero image — more pronounced cinematic motion */}
       <div
         aria-hidden
-        className="absolute inset-0 -z-20 bg-cover bg-center"
+        className="absolute inset-0 -z-20 bg-cover bg-center will-change-transform"
         style={{
           backgroundImage: 'url(/signin-hero.png)',
-          animation: 'hero-drift 24s ease-in-out infinite alternate',
+          animation: 'hero-drift 14s ease-in-out infinite alternate',
         }}
       />
 
-      {/* Cream wash to keep content readable over the image */}
+      {/* Cream wash with a gentle breathing pulse so the entire scene feels alive */}
       <div
         aria-hidden
         className="absolute inset-0 -z-10 pointer-events-none"
         style={{
           backgroundImage:
             'radial-gradient(ellipse at center, rgba(250,247,240,0.55) 0%, rgba(250,247,240,0.75) 60%, rgba(250,247,240,0.9) 100%)',
+          animation: 'wash-breathe 9s ease-in-out infinite',
         }}
       />
 
@@ -200,30 +201,75 @@ export default function SignInPage() {
         }}
       />
 
-      {/* Decorative slow-pulse aura around the wordmark */}
+      {/* Two-layer aura — teal pulse + counter-rotating gold accent */}
       <div
         aria-hidden
-        className="absolute top-[36%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] h-[520px] rounded-full opacity-40 pointer-events-none -z-10"
+        className="absolute top-[36%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[560px] h-[560px] rounded-full pointer-events-none -z-10 will-change-transform"
         style={{
-          backgroundImage: 'radial-gradient(circle, rgba(15,118,110,0.22), transparent 65%)',
-          animation: 'pulse-aura 6s ease-in-out infinite',
+          backgroundImage: 'radial-gradient(circle, rgba(15,118,110,0.30), transparent 65%)',
+          animation: 'pulse-aura 4s ease-in-out infinite',
         }}
       />
+      <div
+        aria-hidden
+        className="absolute top-[36%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[420px] h-[420px] rounded-full pointer-events-none -z-10 will-change-transform mix-blend-multiply"
+        style={{
+          backgroundImage: 'radial-gradient(circle, rgba(212,160,23,0.22), transparent 65%)',
+          animation: 'pulse-gold 5s ease-in-out infinite reverse',
+        }}
+      />
+
+      {/* Drifting confetti dots — three sizes, three speeds */}
+      <div aria-hidden className="absolute inset-0 -z-10 pointer-events-none overflow-hidden">
+        <span className="absolute w-2 h-2 rounded-full bg-[var(--color-teal)]/40 blur-[1px]" style={{ left: '12%', top: '20%', animation: 'float-a 11s ease-in-out infinite' }} />
+        <span className="absolute w-1.5 h-1.5 rounded-full bg-[var(--color-gold)]/60 blur-[0.5px]" style={{ left: '82%', top: '28%', animation: 'float-b 13s ease-in-out infinite' }} />
+        <span className="absolute w-1 h-1 rounded-full bg-[var(--color-teal)]/50" style={{ left: '18%', top: '70%', animation: 'float-c 9s ease-in-out infinite' }} />
+        <span className="absolute w-2 h-2 rounded-full bg-[var(--color-gold)]/35 blur-[1px]" style={{ left: '76%', top: '78%', animation: 'float-a 12s ease-in-out infinite 1s' }} />
+        <span className="absolute w-1 h-1 rounded-full bg-[var(--color-teal)]/60" style={{ left: '50%', top: '14%', animation: 'float-b 10s ease-in-out infinite 0.6s' }} />
+        <span className="absolute w-1.5 h-1.5 rounded-full bg-[var(--color-gold)]/50" style={{ left: '8%', top: '50%', animation: 'float-c 14s ease-in-out infinite 2s' }} />
+        <span className="absolute w-1 h-1 rounded-full bg-[var(--color-teal)]/45" style={{ left: '90%', top: '60%', animation: 'float-a 10s ease-in-out infinite 1.4s' }} />
+      </div>
+
       <style>{`
         @keyframes pulse-aura {
-          0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.4; }
-          50%      { transform: translate(-50%, -50%) scale(1.08); opacity: 0.7; }
+          0%, 100% { transform: translate(-50%, -50%) scale(0.92); opacity: 0.3; }
+          50%      { transform: translate(-50%, -50%) scale(1.18); opacity: 0.85; }
+        }
+        @keyframes pulse-gold {
+          0%, 100% { transform: translate(-50%, -50%) scale(1.1) rotate(0deg); opacity: 0.4; }
+          50%      { transform: translate(-50%, -50%) scale(0.85) rotate(15deg); opacity: 0.85; }
         }
         @keyframes pulse-dot {
-          0%, 100% { opacity: 0.3; transform: scale(1); }
-          50%      { opacity: 1;    transform: scale(1.6); }
+          0%, 100% { opacity: 0.25; transform: scale(1); }
+          50%      { opacity: 1;    transform: scale(1.9); }
         }
         @keyframes hero-drift {
-          0%   { transform: scale(1) translate(0, 0); }
-          100% { transform: scale(1.05) translate(-1%, 1%); }
+          0%   { transform: scale(1)    translate(0, 0); }
+          100% { transform: scale(1.12) translate(-3%, 2%); }
+        }
+        @keyframes wash-breathe {
+          0%, 100% { opacity: 1; }
+          50%      { opacity: 0.85; }
+        }
+        @keyframes float-a {
+          0%, 100% { transform: translate(0, 0); }
+          50%      { transform: translate(40px, -28px); }
+        }
+        @keyframes float-b {
+          0%, 100% { transform: translate(0, 0); }
+          50%      { transform: translate(-32px, 36px); }
+        }
+        @keyframes float-c {
+          0%, 100% { transform: translate(0, 0); }
+          50%      { transform: translate(24px, -40px); }
+        }
+        @keyframes wordmark-glow {
+          0%, 100% { text-shadow: 0 4px 24px rgba(15,118,110,0.18); }
+          50%      { text-shadow: 0 8px 36px rgba(15,118,110,0.42), 0 0 60px rgba(212,160,23,0.15); }
         }
         @media (prefers-reduced-motion: reduce) {
-          [data-reduced-motion-respect] { animation: none !important; }
+          [data-reduced-motion-respect],
+          [aria-hidden] { animation: none !important; }
         }
       `}</style>
 
@@ -238,11 +284,12 @@ export default function SignInPage() {
           CEEALAR · EAG London 2026
         </span>
 
-        {/* Wordmark */}
+        {/* Wordmark — breathing glow synced with the aura */}
         <h1
+          data-reduced-motion-respect
           className="font-display italic text-7xl md:text-8xl tracking-tight leading-none text-[var(--color-teal)]"
           style={{
-            textShadow: '0 4px 24px rgba(15,118,110,0.15)',
+            animation: 'wordmark-glow 4s ease-in-out infinite',
           }}
         >
           Pulse
