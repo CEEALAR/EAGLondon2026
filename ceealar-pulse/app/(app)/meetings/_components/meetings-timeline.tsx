@@ -127,18 +127,24 @@ function MemberLane({
   colorByOwner?: boolean
 }) {
   return (
-    <div className="relative" style={{ height: `${TOTAL_HOURS * hourHeight}px` }}>
-      {Array.from({ length: TOTAL_HOURS }, (_, i) => (
-        <div
-          key={i}
-          className="absolute left-0 right-0 border-t border-border/50"
-          style={{ top: `${i * hourHeight}px` }}
-        >
-          <span className="absolute -top-2 left-0 text-[10px] text-muted-foreground select-none w-7 text-right pr-0.5 tabular-nums">
-            {String(HOUR_START + i).padStart(2, '0')}
-          </span>
-        </div>
-      ))}
+    <div
+      className="relative rounded-xl bg-card/40 border border-border/40 overflow-hidden"
+      style={{ height: `${TOTAL_HOURS * hourHeight}px` }}
+    >
+      {Array.from({ length: TOTAL_HOURS }, (_, i) => {
+        const isHourStart = (HOUR_START + i) % 2 === 0
+        return (
+          <div
+            key={i}
+            className={`absolute left-0 right-0 ${isHourStart ? 'border-t border-border/60' : 'border-t border-border/25'}`}
+            style={{ top: `${i * hourHeight}px` }}
+          >
+            <span className="absolute -top-2 left-0 text-[10px] text-muted-foreground select-none w-7 text-right pr-0.5 tabular-nums">
+              {String(HOUR_START + i).padStart(2, '0')}
+            </span>
+          </div>
+        )
+      })}
       <div className="absolute inset-0" style={{ left: '28px' }}>
         {meetings.map((m) => (
           <MeetingBlock
@@ -399,7 +405,7 @@ export function MeetingsTimeline({ meetings, teamMembers }: MeetingsTimelineProp
   return (
     <div>
       {/* Day tabs */}
-      <div className="inline-flex p-1 rounded-full bg-muted/50 gap-0.5 mb-3">
+      <div className="inline-flex p-1 rounded-full glass-subtle gap-0.5 mb-3">
         {CONF_DAYS.map((day) => (
           <button
             key={day.value}
@@ -416,7 +422,7 @@ export function MeetingsTimeline({ meetings, teamMembers }: MeetingsTimelineProp
       </div>
 
       {/* View-mode toggle — its own row so it doesn't fight day tabs on mobile */}
-      <div className="flex p-1 rounded-full bg-muted/50 gap-0.5 mb-4 w-full md:inline-flex md:w-auto">
+      <div className="flex p-1 rounded-full glass-subtle gap-0.5 mb-4 w-full md:inline-flex md:w-auto">
         {([
           ['per-person', 'Per person'],
           ['overlay', 'Overlay'],

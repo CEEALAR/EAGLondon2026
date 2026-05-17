@@ -132,15 +132,23 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
         ← Back to {attendeeName}
       </Link>
 
-      {/* Section 1 — Header */}
-      <div className="space-y-2">
-        <div className="flex items-start justify-between gap-2">
+      {/* Section 1 — Hero header */}
+      <div className="hero-header rounded-2xl p-5 md:p-6 space-y-3 fade-up">
+        <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 mb-1.5">
+              <StatusBadge status={meeting.status} />
+              {meeting.source === 'ical' && (
+                <span className="inline-flex items-center text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-[var(--color-teal)]/10 text-[var(--color-teal)] uppercase tracking-wider">
+                  Swapcard
+                </span>
+              )}
+            </div>
             <div className="flex items-start gap-2 flex-wrap">
-              <h1 className="text-2xl font-bold">
+              <h1 className="editorial-h1 text-3xl md:text-4xl font-bold text-foreground">
                 <Link
                   href={`/attendees/${meeting.attendee_id}`}
-                  className="hover:underline underline-offset-4"
+                  className="hover:text-[var(--color-teal-deep)] transition-colors"
                 >
                   {attendeeName}
                 </Link>
@@ -148,7 +156,7 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
               {attendee && <PriorityBadge priority={attendee.priority} />}
             </div>
             {attendee && (attendee.company || attendee.job_title || attendee.linkedin) && (
-              <p className="text-muted-foreground text-sm mt-1 flex items-center flex-wrap gap-x-2">
+              <p className="text-base text-foreground/80 mt-1 flex items-center flex-wrap gap-x-2 tracking-tight">
                 {(attendee.company || attendee.job_title) && (
                   <span>{[attendee.company, attendee.job_title].filter(Boolean).join(' · ')}</span>
                 )}
@@ -157,7 +165,7 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
                     href={attendee.linkedin}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[var(--color-teal)] hover:underline inline-flex items-center gap-0.5"
+                    className="text-[var(--color-teal)] hover:underline inline-flex items-center gap-0.5 font-medium text-sm"
                   >
                     LinkedIn <ExternalLink size={11} />
                   </a>
@@ -179,7 +187,7 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
             )}
           </div>
           {isOwner && (
-            <div className="flex gap-1 shrink-0 pt-1">
+            <div className="flex gap-1 shrink-0">
               {meeting.source !== 'ical' && (
                 <EditMeetingButton
                   meetingId={id}
@@ -194,53 +202,57 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
             </div>
           )}
         </div>
-        <p className="text-sm text-muted-foreground">
-          Meeting owned by {ownerName}
-          {meeting.source === 'ical' && (
-            <span className="ml-2 inline-flex items-center text-xs font-medium px-1.5 py-0.5 rounded bg-[var(--color-teal)]/10 text-[var(--color-teal)]">
-              from Swapcard
+
+        {(meeting.scheduled_at || meeting.location) && <hr className="hr-editorial" />}
+
+        <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 text-sm">
+          {meeting.scheduled_at ? (
+            <span className="text-foreground font-medium tabular-nums">
+              {format(parseISO(meeting.scheduled_at), "EEEE d MMM 'at' HH:mm")}
+              {meeting.duration_minutes && (
+                <span className="text-muted-foreground font-normal"> · {meeting.duration_minutes} min</span>
+              )}
             </span>
+          ) : meeting.status === 'want_to_meet' ? (
+            <span className="text-muted-foreground italic">Not yet scheduled</span>
+          ) : null}
+          {meeting.location && (
+            <span className="text-muted-foreground">{meeting.location}</span>
           )}
-        </p>
-        {meeting.source === 'ical' && isOwner && (
-          <p className="text-xs text-muted-foreground italic">Time and location sync from Swapcard — edit there.</p>
-        )}
-
-        {meeting.scheduled_at && (
-          <p className="text-sm text-foreground">
-            {format(parseISO(meeting.scheduled_at), "EEEE d MMM yyyy 'at' HH:mm")}
-            {meeting.duration_minutes && ` · ${meeting.duration_minutes} min`}
-          </p>
-        )}
-        {meeting.location && (
-          <p className="text-sm text-muted-foreground">{meeting.location}</p>
-        )}
-        {!meeting.scheduled_at && meeting.status === 'want_to_meet' && (
-          <p className="text-sm text-muted-foreground italic">Not yet scheduled</p>
-        )}
-      </div>
-
-      {/* Section 2 — Status Changer */}
-      <div className="border rounded-lg p-4 bg-card space-y-3">
-        <div className="flex items-center gap-2 flex-wrap">
-          <h2 className="text-base font-semibold">Status</h2>
-          <StatusBadge status={meeting.status} />
+          <span className="text-muted-foreground text-xs ml-auto">
+            owned by <span className="text-foreground/80 font-medium">{ownerName}</span>
+          </span>
         </div>
-        <StatusChanger
-          meetingId={id}
-          currentStatus={meeting.status}
-          isOwner={isOwner}
-          isIcal={meeting.source === 'ical'}
-        />
-        {['done', 'no_show', 'cancelled'].includes(meeting.status) && (
-          <p className="text-xs text-muted-foreground">
-            Status is final: {STATUS_LABELS[meeting.status]}
+
+        {meeting.source === 'ical' && isOwner && (
+          <p className="text-xs text-muted-foreground italic">
+            Time and location sync from Swapcard — edit there.
           </p>
         )}
       </div>
+
+      {/* Section 2 — Status actions */}
+      {(isOwner && !['done', 'no_show', 'cancelled'].includes(meeting.status)) && (
+        <div className="rounded-xl p-4 bg-card border border-border/60 shadow-sm fade-up">
+          <p className="editorial-eyebrow text-muted-foreground mb-3">Move status</p>
+          <StatusChanger
+            meetingId={id}
+            currentStatus={meeting.status}
+            isOwner={isOwner}
+            isIcal={meeting.source === 'ical'}
+          />
+        </div>
+      )}
+      {['done', 'no_show', 'cancelled'].includes(meeting.status) && (
+        <div className="rounded-xl px-4 py-3 bg-muted/30 border border-border/60">
+          <p className="text-xs text-muted-foreground">
+            Status is final: <span className="font-medium text-foreground">{STATUS_LABELS[meeting.status]}</span>
+          </p>
+        </div>
+      )}
 
       {/* Section 3 — Assignees */}
-      <div className="border rounded-lg p-4 bg-card space-y-2">
+      <div className="rounded-xl p-4 bg-card border border-border/60 shadow-sm space-y-2">
         <h2 className="text-base font-semibold">Also invite</h2>
         <MeetingMembersSection
           meetingId={id}
@@ -250,7 +262,7 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
       </div>
 
       {/* Section 4 — Notes (autosave) */}
-      <div className="border rounded-lg p-4 bg-card space-y-2">
+      <div className="rounded-xl p-4 bg-card border border-border/60 shadow-sm space-y-2">
         <h2 className="text-base font-semibold">Meeting Log</h2>
         <MeetingNotesForm
           meetingId={id}
@@ -264,7 +276,7 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
       </div>
 
       {/* Section 5 — Action Items */}
-      <div className="border rounded-lg p-4 bg-card space-y-3">
+      <div className="rounded-xl p-4 bg-card border border-border/60 shadow-sm space-y-3">
         <h2 className="text-base font-semibold">Action Items</h2>
         <ActionItemsSection
           meetingId={id}
@@ -273,7 +285,7 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
       </div>
 
       {/* Section 6 — Follow-up Date */}
-      <div className="border rounded-lg p-4 bg-card">
+      <div className="rounded-xl p-4 bg-card border border-border/60 shadow-sm">
         <FollowUpDate meetingId={id} initialDate={meeting.follow_up_date} />
       </div>
 

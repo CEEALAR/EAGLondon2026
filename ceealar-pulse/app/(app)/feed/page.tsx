@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { FeedFilter } from './_components/feed-filter'
+import { ActivityIcon } from './_components/activity-icon'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,32 +19,20 @@ type ActivityRow = {
   meetings: { scheduled_at: string | null } | null
 }
 
-function formatActivity(row: ActivityRow): string {
-  const actor = row.team_members?.display_name ?? 'Someone'
-  const attendeeName =
-    [row.attendees?.first_name, row.attendees?.last_name].filter(Boolean).join(' ') ||
-    'an attendee'
-
-  switch (row.action) {
-    case 'meeting_created': {
-      const scheduledAt = row.meetings?.scheduled_at
-      if (scheduledAt) {
-        const d = new Date(scheduledAt)
-        const dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
-        const timeStr = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false })
-        return `${actor} scheduled a meeting with ${attendeeName} for ${dateStr} at ${timeStr}`
-      }
-      return `${actor} flagged ${attendeeName} as 'Want to Meet'`
-    }
-    case 'status_done':
-      return `${actor} marked their meeting with ${attendeeName} as done`
-    case 'action_item_added':
-      return `${actor} added an action item for ${attendeeName}`
-    case 'action_item_completed':
-      return `${actor} completed an action item for ${attendeeName}`
-    default:
-      return `${actor} updated a meeting`
-  }
+// Deterministic 2-letter initials + gradient for the actor avatar
+function avatarFor(name: string | null): { initials: string; gradient: string } {
+  if (!name) return { initials: '?', gradient: 'linear-gradient(135deg, #94a3b8, #475569)' }
+  const parts = name.split(/\s+/).filter(Boolean)
+  const initials = (parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? '')
+  let h = 0
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) | 0
+  const PALETTES = [
+    'linear-gradient(135deg, #14958B, #0B5953)',
+    'linear-gradient(135deg, #E8B73E, #B8870E)',
+    'linear-gradient(135deg, #6366F1, #312E81)',
+    'linear-gradient(135deg, #DB2777, #9D174D)',
+  ]
+  return { initials: initials.toUpperCase().slice(0, 2), gradient: PALETTES[Math.abs(h) % PALETTES.length] }
 }
 
 function relativeTime(iso: string): string {
@@ -66,13 +55,90 @@ function dayLabel(iso: string): string {
   return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })
 }
 
+/**
+ * Build the headline + sub-line for an activity row.
+ * Returns React content so we can bold the attendee name etc.
+ */
+function describeActivity(row: ActivityRow) {
+  const actor = row.team_members?.display_name ?? 'Someone'
+  const attendeeName =
+    [row.attendees?.first_name, row.attendees?.last_name].filter(Boolean).join(' ') ||
+    'an attendee'
+
+  switch (row.action) {
+    case 'meeting_created': {
+      const scheduledAt = row.meetings?.scheduled_at
+      if (scheduledAt) {
+        const d = new Date(scheduledAt)
+        const dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+        const timeStr = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false })
+        return {
+          headline: (
+            <>
+              <strong className="font-semibold text-foreground">{actor}</strong> scheduled a meeting with{' '}
+              <strong className="font-semibold text-foreground">{attendeeName}</strong>
+            </>
+          ),
+          sub: `${dateStr} at ${timeStr}`,
+        }
+      }
+      return {
+        headline: (
+          <>
+            <strong className="font-semibold text-foreground">{actor}</strong> flagged{' '}
+            <strong className="font-semibold text-foreground">{attendeeName}</strong> as Want to Meet
+          </>
+        ),
+        sub: null,
+      }
+    }
+    case 'status_done':
+      return {
+        headline: (
+          <>
+            <strong className="font-semibold text-foreground">{actor}</strong> wrapped up the meeting with{' '}
+            <strong className="font-semibold text-foreground">{attendeeName}</strong>
+          </>
+        ),
+        sub: null,
+      }
+    case 'action_item_added':
+      return {
+        headline: (
+          <>
+            <strong className="font-semibold text-foreground">{actor}</strong> added an action item for{' '}
+            <strong className="font-semibold text-foreground">{attendeeName}</strong>
+          </>
+        ),
+        sub: null,
+      }
+    case 'action_item_completed':
+      return {
+        headline: (
+          <>
+            <strong className="font-semibold text-foreground">{actor}</strong> ticked off an action item for{' '}
+            <strong className="font-semibold text-foreground">{attendeeName}</strong>
+          </>
+        ),
+        sub: null,
+      }
+    default:
+      return {
+        headline: (
+          <>
+            <strong className="font-semibold text-foreground">{actor}</strong> updated a meeting
+          </>
+        ),
+        sub: null,
+      }
+  }
+}
+
 export default async function FeedPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const userId = user?.id ?? null
 
-  // Capture the previous last-seen so we can highlight rows newer than it,
-  // then bump it to 'now' so the badge clears on this visit.
   let previousLastSeen: string | null = null
   if (userId) {
     const admin = createAdminClient(
@@ -109,7 +175,6 @@ export default async function FeedPage() {
     ((myMembersRes.data ?? []) as Array<{ meeting_id: string }>).map((r) => r.meeting_id)
   )
 
-  // Group + tag for the client filter
   const rows = activities.map((row) => {
     const involvesMe = !!(userId && row.meeting_id && myMeetingIds.has(row.meeting_id) && row.actor_id !== userId)
     const isMine = !!(userId && row.actor_id === userId)
@@ -121,34 +186,59 @@ export default async function FeedPage() {
       ? `/attendees/${row.attendee_id}`
       : null
 
-    const rowClasses = [
-      'block px-4 py-3 transition-colors',
-      involvesMe ? 'bg-[var(--color-teal)]/6 hover:bg-[var(--color-teal)]/10' : 'hover:bg-muted/50',
+    const { initials, gradient } = avatarFor(row.team_members?.display_name ?? null)
+    const { headline, sub } = describeActivity(row)
+    const hasTime = !!row.meetings?.scheduled_at
+
+    const wrapperClasses = [
+      'group block px-4 py-3 transition-colors relative',
+      involvesMe ? 'bg-[var(--color-teal)]/5 hover:bg-[var(--color-teal)]/10' : 'hover:bg-muted/40',
       isUnread ? 'border-l-2 border-l-[var(--color-gold)]' : 'border-l-2 border-l-transparent',
     ].join(' ')
 
     const content = (
-      <>
-        <div className="flex items-start gap-2">
-          {involvesMe && (
-            <span
-              aria-label="about you"
-              className="mt-1.5 shrink-0 inline-block w-1.5 h-1.5 rounded-full bg-[var(--color-teal)]"
-            />
-          )}
-          <div className="min-w-0 flex-1">
-            <p className="text-sm text-foreground">{formatActivity(row)}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {relativeTime(row.created_at)}
-              {isUnread && (
-                <span className="ml-2 inline-flex items-center text-[10px] font-bold uppercase tracking-wider px-1 py-0 rounded bg-[var(--color-gold)]/20 text-[var(--color-gold)]">
-                  New
-                </span>
-              )}
-            </p>
+      <div className="flex items-start gap-3">
+        {/* Actor avatar with action icon overlay */}
+        <div className="relative shrink-0">
+          <div
+            aria-hidden
+            className="flex w-10 h-10 rounded-full items-center justify-center text-white text-xs font-semibold ring-1 ring-black/5"
+            style={{ backgroundImage: gradient }}
+          >
+            {initials || '?'}
+          </div>
+          <div className="absolute -bottom-1 -right-1 ring-2 ring-background rounded-full">
+            <ActivityIcon action={row.action} hasTime={hasTime} />
           </div>
         </div>
-      </>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm text-muted-foreground leading-snug">{headline}</p>
+          {sub && (
+            <p className="text-xs text-foreground/80 mt-0.5 tabular-nums">{sub}</p>
+          )}
+          <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1.5">
+            <span>{relativeTime(row.created_at)}</span>
+            {isUnread && (
+              <span className="inline-flex items-center text-[9px] font-bold uppercase tracking-wider px-1.5 py-0 rounded-full bg-[var(--color-gold)]/20 text-[var(--color-gold)]">
+                NEW
+              </span>
+            )}
+            {involvesMe && !isUnread && (
+              <span className="inline-flex items-center text-[9px] font-bold uppercase tracking-wider px-1.5 py-0 rounded-full bg-[var(--color-teal)]/10 text-[var(--color-teal)]">
+                You&apos;re on
+              </span>
+            )}
+          </p>
+        </div>
+        {href && (
+          <span
+            aria-hidden
+            className="hidden sm:inline-flex items-center self-center text-muted-foreground/40 group-hover:text-[var(--color-teal)] transition-colors shrink-0 text-lg"
+          >
+            ›
+          </span>
+        )}
+      </div>
     )
 
     return {
@@ -156,14 +246,13 @@ export default async function FeedPage() {
       involvesMe,
       isMine,
       node: href ? (
-        <Link href={href} className={rowClasses}>{content}</Link>
+        <Link href={href} className={wrapperClasses}>{content}</Link>
       ) : (
-        <div className={rowClasses}>{content}</div>
+        <div className={wrapperClasses}>{content}</div>
       ),
     }
   })
 
-  // Group visually by day (purely cosmetic dividers in the filter's flat list)
   const groups: Array<{ label: string; rows: typeof rows }> = []
   for (const row of rows) {
     const activity = activities.find((a) => a.id === row.id)!
@@ -178,9 +267,9 @@ export default async function FeedPage() {
 
   return (
     <div className="max-w-2xl mx-auto pb-8">
-      <div className="px-4 py-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-foreground">Feed</h1>
-        <p className="text-xs text-muted-foreground">{activities.length} recent · last 100</p>
+      <div className="px-4 py-5 flex items-center justify-between">
+        <h1 className="editorial-h1 text-3xl text-foreground">Feed</h1>
+        <p className="text-xs text-muted-foreground tabular-nums">{activities.length} recent</p>
       </div>
 
       {rows.length === 0 ? (
@@ -193,7 +282,6 @@ export default async function FeedPage() {
           </p>
         </div>
       ) : (
-        // Day separators rendered inline in the FeedFilter via interleaved items
         <FeedFilter
           rows={groups.flatMap((g) => [
             {
@@ -202,9 +290,7 @@ export default async function FeedPage() {
               isMine: false,
               node: (
                 <div className="px-4 py-1.5 bg-muted/30 border-y border-border/60">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                    {g.label}
-                  </p>
+                  <p className="editorial-eyebrow text-muted-foreground">{g.label}</p>
                 </div>
               ),
             },

@@ -65,6 +65,14 @@
   --shadow-md: 0 4px 12px -2px rgb(15 23 42 / 0.06), 0 2px 4px -2px rgb(15 23 42 / 0.04);
   --shadow-lg: 0 10px 30px -8px rgb(15 23 42 / 0.08), 0 4px 6px -4px rgb(15 23 42 / 0.04);
   --shadow-glow-teal: 0 0 0 3px rgb(15 118 110 / 0.12);
+  --shadow-hero: 0 24px 60px -20px rgb(15 118 110 / 0.18), 0 8px 16px -8px rgb(15 23 42 / 0.08);
+
+  /* Brand gradient tokens */
+  --gradient-teal: linear-gradient(135deg, #14958B 0%, #0B5953 100%);
+  --gradient-gold: linear-gradient(135deg, #E8B73E 0%, #B8870E 100%);
+  --gradient-warm: linear-gradient(180deg, #FAF7F0 0%, #F4EFE3 100%);
+  --gradient-mesh: radial-gradient(at 8% 18%, rgba(15,118,110,0.10) 0%, transparent 38%),
+                   radial-gradient(at 92% 14%, rgba(212,160,23,0.10) 0%, transparent 42%);
 
   /* Motion tokens */
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
@@ -202,6 +210,74 @@
   @media (prefers-reduced-motion: reduce) {
     .press, .lift, .fade-up, .shimmer { animation: none !important; transition: none !important; }
     .press:active, .lift:hover { transform: none !important; }
+  }
+
+  /* Glass surface — used for hero cards / floating panels */
+  .glass {
+    background: rgba(255, 255, 255, 0.62);
+    backdrop-filter: blur(20px) saturate(135%);
+    -webkit-backdrop-filter: blur(20px) saturate(135%);
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    box-shadow: var(--shadow-md),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.6),
+                inset 0 -1px 0 0 rgba(255, 255, 255, 0.2);
+  }
+  .glass-subtle {
+    background: rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(14px) saturate(125%);
+    -webkit-backdrop-filter: blur(14px) saturate(125%);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+  }
+
+  /* Hero header — radial mesh wash over a glass surface */
+  .hero-header {
+    background-image: var(--gradient-mesh), linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.55));
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: var(--shadow-hero);
+  }
+
+  /* Editorial typography — tighter tracking, balanced wrap */
+  .editorial-h1 {
+    font-family: var(--font-display);
+    font-style: italic;
+    letter-spacing: -0.025em;
+    line-height: 1;
+  }
+  .editorial-eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    font-size: 10px;
+    font-weight: 600;
+  }
+
+  /* Stagger entrance for lists */
+  @keyframes stagger-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .stagger > * {
+    opacity: 0;
+    animation: stagger-in 320ms var(--ease-out-expo) forwards;
+  }
+  .stagger > *:nth-child(1)  { animation-delay: 20ms; }
+  .stagger > *:nth-child(2)  { animation-delay: 50ms; }
+  .stagger > *:nth-child(3)  { animation-delay: 80ms; }
+  .stagger > *:nth-child(4)  { animation-delay: 110ms; }
+  .stagger > *:nth-child(5)  { animation-delay: 140ms; }
+  .stagger > *:nth-child(6)  { animation-delay: 170ms; }
+  .stagger > *:nth-child(7)  { animation-delay: 200ms; }
+  .stagger > *:nth-child(n+8) { animation-delay: 230ms; }
+  @media (prefers-reduced-motion: reduce) {
+    .stagger > * { animation: none !important; opacity: 1 !important; }
+  }
+
+  /* Hairline divider used between editorial sections */
+  .hr-editorial {
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, rgb(15 23 42 / 0.1) 50%, transparent 100%);
+    border: none;
   }
 }
 

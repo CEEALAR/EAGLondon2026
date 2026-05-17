@@ -130,29 +130,50 @@ export default async function AttendeeDetailPage(props: { params: Promise<{ id: 
         </div>
       )}
 
-      {/* Section 1 — Header */}
-      <div className="space-y-1">
-        <div className="flex items-start gap-2 flex-wrap">
-          <h1 className="text-2xl font-bold">{fullName}</h1>
-          <PriorityBadge priority={attendee.priority} />
-        </div>
-        {subtitle && <p className="text-muted-foreground">{subtitle}</p>}
-        {(attendee.career_stage || attendee.linkedin) && (
-          <p className="text-sm text-muted-foreground flex items-center flex-wrap gap-2">
-            {attendee.career_stage && <span>{attendee.career_stage}</span>}
-            {attendee.linkedin && (
-              <a
-                href={attendee.linkedin}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[var(--color-teal)] hover:underline inline-flex items-center gap-0.5"
-              >
-                LinkedIn <ExternalLink size={11} />
-              </a>
+      {/* Section 1 — Hero header (glass card + initials avatar) */}
+      <div className="hero-header rounded-2xl p-5 md:p-6 fade-up">
+        <div className="flex items-start gap-4">
+          {/* Large gradient avatar with initials */}
+          <div
+            className="hidden sm:flex shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-2xl items-center justify-center text-white font-semibold text-xl md:text-2xl tracking-tight ring-1 ring-black/5 shadow-md"
+            style={{
+              backgroundImage: 'linear-gradient(135deg, #14958B 0%, #0B5953 100%)',
+            }}
+            aria-hidden
+          >
+            {(attendee.first_name?.[0] ?? '?').toUpperCase()}
+            {(attendee.last_name?.[0] ?? '').toUpperCase()}
+          </div>
+
+          <div className="min-w-0 flex-1 space-y-1">
+            <div className="flex items-start gap-2 flex-wrap">
+              <h1 className="editorial-h1 text-3xl md:text-4xl font-bold text-foreground">
+                {fullName}
+              </h1>
+              <PriorityBadge priority={attendee.priority} />
+            </div>
+            {subtitle && (
+              <p className="text-base text-foreground/80 tracking-tight">{subtitle}</p>
             )}
-          </p>
-        )}
-        <div className="pt-2 flex flex-wrap gap-2">
+            {(attendee.career_stage || attendee.linkedin) && (
+              <p className="text-sm text-muted-foreground flex items-center flex-wrap gap-x-3 gap-y-1 pt-0.5">
+                {attendee.career_stage && <span>{attendee.career_stage}</span>}
+                {attendee.linkedin && (
+                  <a
+                    href={attendee.linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[var(--color-teal)] hover:underline inline-flex items-center gap-0.5 font-medium"
+                  >
+                    LinkedIn <ExternalLink size={11} />
+                  </a>
+                )}
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="pt-4 mt-4 border-t border-border/40 flex flex-wrap gap-2">
           {user && (
             <AttendeeActions
               attendeeId={attendee.id}
