@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 
 type ActivityRow = {
@@ -112,15 +113,32 @@ export default async function FeedPage() {
               {group.label}
             </p>
           </div>
-          {group.activities.map((row) => (
-            <div
-              key={row.id}
-              className="px-4 py-3 border-b border-border"
-            >
-              <p className="text-sm text-foreground">{formatActivity(row)}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{relativeTime(row.created_at)}</p>
-            </div>
-          ))}
+          {group.activities.map((row) => {
+            const href = row.meeting_id
+              ? `/meetings/${row.meeting_id}`
+              : row.attendee_id
+              ? `/attendees/${row.attendee_id}`
+              : null
+            const content = (
+              <>
+                <p className="text-sm text-foreground">{formatActivity(row)}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{relativeTime(row.created_at)}</p>
+              </>
+            )
+            return href ? (
+              <Link
+                key={row.id}
+                href={href}
+                className="block px-4 py-3 border-b border-border hover:bg-muted/50 transition-colors"
+              >
+                {content}
+              </Link>
+            ) : (
+              <div key={row.id} className="px-4 py-3 border-b border-border">
+                {content}
+              </div>
+            )
+          })}
         </div>
       ))}
     </div>
