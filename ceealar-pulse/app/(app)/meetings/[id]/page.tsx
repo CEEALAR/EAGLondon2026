@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import { notFound } from 'next/navigation'
 import { ExternalLink } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
@@ -6,14 +7,29 @@ import { createClient } from '@/lib/supabase/server'
 import { MeetingNotesForm } from './_components/meeting-notes-form'
 import { ActionItemsSection } from './_components/action-items-section'
 import { StatusChanger, StatusBadge } from './_components/status-changer'
-import { FollowUpDate } from './_components/follow-up-date'
-import { DeleteMeetingButton } from './_components/delete-meeting-button'
-import { EditMeetingButton } from './_components/edit-meeting-button'
 import { MeetingMembersSection } from './_components/meeting-members-section'
-import { AttendeeProfileSection } from '@/app/(app)/attendees/_components/attendee-profile-section'
 import { PriorityEditor } from '@/components/priority-editor'
 import { safeHttpUrl } from '@/lib/utils'
 import type { ActionItem, MeetingStatus, TeamMember } from '@/lib/types'
+
+// Code-split: these components ship as separate chunks. Owner-only dialogs
+// (Edit/Delete) and below-the-fold sections (FollowUpDate carries
+// react-day-picker, AttendeeProfileSection is the long Swapcard read-out)
+// only download their JS when the page actually renders them.
+const EditMeetingButton = dynamic(
+  () => import('./_components/edit-meeting-button').then((m) => ({ default: m.EditMeetingButton }))
+)
+const DeleteMeetingButton = dynamic(
+  () => import('./_components/delete-meeting-button').then((m) => ({ default: m.DeleteMeetingButton }))
+)
+const FollowUpDate = dynamic(
+  () => import('./_components/follow-up-date').then((m) => ({ default: m.FollowUpDate })),
+  { loading: () => <div className="h-10 animate-pulse bg-muted rounded" /> }
+)
+const AttendeeProfileSection = dynamic(
+  () => import('@/app/(app)/attendees/_components/attendee-profile-section').then((m) => ({ default: m.AttendeeProfileSection })),
+  { loading: () => <div className="rounded-xl h-64 animate-pulse bg-muted/30 border border-border/60" /> }
+)
 
 type MeetingRow = {
   id: string
