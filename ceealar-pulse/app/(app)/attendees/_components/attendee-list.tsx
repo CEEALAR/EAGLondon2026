@@ -21,7 +21,7 @@ type FilterState = {
   interests: Set<string>
   careerStage: Set<string>
   country: Set<string>
-  seekingWork: 'any' | 'yes' | 'no'
+  seekingWork: Set<string>
 }
 
 const emptyFilters = (): FilterState => ({
@@ -30,7 +30,7 @@ const emptyFilters = (): FilterState => ({
   interests: new Set(),
   careerStage: new Set(),
   country: new Set(),
-  seekingWork: 'any',
+  seekingWork: new Set(),
 })
 
 function activeCount(f: FilterState): number {
@@ -40,7 +40,7 @@ function activeCount(f: FilterState): number {
     f.interests.size +
     f.careerStage.size +
     f.country.size +
-    (f.seekingWork !== 'any' ? 1 : 0)
+    f.seekingWork.size
   )
 }
 
@@ -63,6 +63,7 @@ export function AttendeeList({ attendees, allTags }: AttendeeListProps) {
     const interestCounts = new Map<string, number>()
     const careerStageCounts = new Map<string, number>()
     const countryCounts = new Map<string, number>()
+    const seekingWorkCounts = new Map<string, number>()
 
     for (const a of attendees) {
       for (const e of a.expertise ?? []) {
@@ -77,6 +78,8 @@ export function AttendeeList({ attendees, allTags }: AttendeeListProps) {
       if (cs) careerStageCounts.set(cs, (careerStageCounts.get(cs) ?? 0) + 1)
       const co = a.country?.trim()
       if (co) countryCounts.set(co, (countryCounts.get(co) ?? 0) + 1)
+      const sw = typeof a.seeking_work === 'string' ? a.seeking_work.trim() : null
+      if (sw) seekingWorkCounts.set(sw, (seekingWorkCounts.get(sw) ?? 0) + 1)
     }
 
     function sorted(m: Map<string, number>) {
@@ -88,6 +91,7 @@ export function AttendeeList({ attendees, allTags }: AttendeeListProps) {
       interests: sorted(interestCounts),
       careerStage: sorted(careerStageCounts),
       country: sorted(countryCounts),
+      seekingWork: sorted(seekingWorkCounts),
     }
   }, [attendees])
 
@@ -129,10 +133,8 @@ export function AttendeeList({ attendees, allTags }: AttendeeListProps) {
     if (applied.country.size > 0) {
       result = result.filter((a) => a.country != null && applied.country.has(a.country))
     }
-    if (applied.seekingWork === 'yes') {
-      result = result.filter((a) => a.seeking_work === true)
-    } else if (applied.seekingWork === 'no') {
-      result = result.filter((a) => a.seeking_work === false)
+    if (applied.seekingWork.size > 0) {
+      result = result.filter((a) => typeof a.seeking_work === 'string' && applied.seekingWork.has(a.seeking_work))
     }
 
     return result
@@ -179,7 +181,7 @@ export function AttendeeList({ attendees, allTags }: AttendeeListProps) {
               interests: new Set(applied.interests),
               careerStage: new Set(applied.careerStage),
               country: new Set(applied.country),
-              seekingWork: applied.seekingWork,
+              seekingWork: new Set(applied.seekingWork),
             })
             setFilterOpen(true)
           }}
@@ -295,26 +297,12 @@ export function AttendeeList({ attendees, allTags }: AttendeeListProps) {
               onChange={(s) => setDraft((d) => ({ ...d, country: s }))}
             />
 
-            {/* Seeking work — tri-state */}
-            <FilterSection
+            <FacetSection
               title="Seeking work"
-              count={draft.seekingWork !== 'any' ? 1 : 0}
-              defaultOpen={draft.seekingWork !== 'any'}
-            >
-              <div className="flex gap-2">
-                {(['any', 'yes', 'no'] as const).map((v) => (
-                  <Button
-                    key={v}
-                    variant={draft.seekingWork === v ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setDraft((d) => ({ ...d, seekingWork: v }))}
-                    className="capitalize flex-1"
-                  >
-                    {v}
-                  </Button>
-                ))}
-              </div>
-            </FilterSection>
+              values={facets.seekingWork}
+              selected={draft.seekingWork}
+              onChange={(s) => setDraft((d) => ({ ...d, seekingWork: s }))}
+            />
           </div>
 
           <div className="mt-6 flex gap-2 sticky bottom-0 bg-background pt-3 border-t border-border">

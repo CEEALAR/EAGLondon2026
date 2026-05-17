@@ -22,14 +22,13 @@ function splitArray(val: unknown): string[] | null {
   return parts.length > 0 ? parts : null
 }
 
-// Helper: convert Swapcard "Seeking work?" values to boolean | null
-function seekingWork(val: unknown): boolean | null {
-  const s = sanitize(val)
-  if (s === null) return null
-  const lower = s.toLowerCase()
-  if (lower === 'yes') return true
-  if (lower === 'no') return false
-  return null
+// Helper: pass the raw Swapcard "Seeking work?" text through unchanged.
+// Values look like: "I'm actively looking for a new role", "I'm not interested
+// in a new role", "I'm happy where I am but feel free to pitch me new ideas",
+// "I'm seeking collaborators for an existing project/research". Yes/No legacy
+// values come through as-is too.
+function seekingWork(val: unknown): string | null {
+  return sanitize(val)
 }
 
 export async function POST(req: NextRequest) {
@@ -101,7 +100,7 @@ export async function POST(req: NextRequest) {
     how_others_can_help: string | null
     how_i_can_help: string | null
     country: string | null
-    seeking_work: boolean | null
+    seeking_work: string | null
     recruitment: string | null
     linkedin: string | null
   }

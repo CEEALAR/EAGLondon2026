@@ -15,7 +15,7 @@ export type Attendee = {
   how_others_can_help: string | null
   how_i_can_help: string | null
   country: string | null
-  seeking_work: boolean | null
+  seeking_work: string | null
   recruitment: string | null
   linkedin: string | null
   // Strategic context — shared across team, not per-user

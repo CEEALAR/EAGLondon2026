@@ -8,7 +8,7 @@ type Attendee = {
   how_i_can_help: string | null
   country: string | null
   career_stage: string | null
-  seeking_work: boolean | null
+  seeking_work: string | null
   recruitment: string | null
   swapcard_url: string
   linkedin: string | null
@@ -57,9 +57,7 @@ export function AttendeeProfileSection({ attendee }: { attendee: Attendee }) {
       <ProfileField label="Country">{attendee.country ?? '-'}</ProfileField>
       <ProfileField label="Career Stage">{attendee.career_stage ?? '-'}</ProfileField>
 
-      <ProfileField label="Seeking Work">
-        {attendee.seeking_work === true ? 'Yes' : attendee.seeking_work === false ? 'No' : '-'}
-      </ProfileField>
+      <ProfileField label="Seeking Work">{attendee.seeking_work ?? '-'}</ProfileField>
 
       <ProfileField label="Recruitment">{attendee.recruitment ?? '-'}</ProfileField>
 

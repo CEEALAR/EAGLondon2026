@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { ExternalLink } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { createClient } from '@/lib/supabase/server'
 import { MeetingNotesForm } from './_components/meeting-notes-form'
@@ -89,7 +90,7 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
   const [{ data: attendee }, { data: attendeeTagRows }, { data: allTagsData }] = await Promise.all([
     supabase
       .from('attendees')
-      .select('company, job_title, biography, expertise, interests, how_others_can_help, how_i_can_help, country, career_stage, seeking_work, recruitment, swapcard_url, linkedin')
+      .select('company, job_title, linkedin, biography, expertise, interests, how_others_can_help, how_i_can_help, country, career_stage, seeking_work, recruitment, swapcard_url')
       .eq('id', attendeeId)
       .maybeSingle(),
     supabase.from('attendee_tags').select('tag_id').eq('attendee_id', attendeeId),
@@ -142,9 +143,21 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
                 {attendeeName}
               </Link>
             </h1>
-            {attendee && (attendee.company || attendee.job_title) && (
-              <p className="text-muted-foreground text-sm mt-1">
-                {[attendee.company, attendee.job_title].filter(Boolean).join(' · ')}
+            {attendee && (attendee.company || attendee.job_title || attendee.linkedin) && (
+              <p className="text-muted-foreground text-sm mt-1 flex items-center flex-wrap gap-x-2">
+                {(attendee.company || attendee.job_title) && (
+                  <span>{[attendee.company, attendee.job_title].filter(Boolean).join(' · ')}</span>
+                )}
+                {attendee.linkedin && (
+                  <a
+                    href={attendee.linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[var(--color-teal)] hover:underline inline-flex items-center gap-0.5"
+                  >
+                    LinkedIn <ExternalLink size={11} />
+                  </a>
+                )}
               </p>
             )}
             {assignedTags.length > 0 && (

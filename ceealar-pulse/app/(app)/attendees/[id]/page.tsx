@@ -116,8 +116,20 @@ export default async function AttendeeDetailPage(props: { params: Promise<{ id: 
       <div className="space-y-1">
         <h1 className="text-2xl font-bold">{fullName}</h1>
         {subtitle && <p className="text-muted-foreground">{subtitle}</p>}
-        {attendee.career_stage && (
-          <p className="text-sm text-muted-foreground">{attendee.career_stage}</p>
+        {(attendee.career_stage || attendee.linkedin) && (
+          <p className="text-sm text-muted-foreground flex items-center flex-wrap gap-2">
+            {attendee.career_stage && <span>{attendee.career_stage}</span>}
+            {attendee.linkedin && (
+              <a
+                href={attendee.linkedin}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[var(--color-teal)] hover:underline inline-flex items-center gap-0.5"
+              >
+                LinkedIn <ExternalLink size={11} />
+              </a>
+            )}
+          </p>
         )}
         <div className="pt-2 flex flex-wrap gap-2">
           {user && (

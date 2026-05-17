@@ -26,7 +26,7 @@ type AttendeeWithTags = {
   how_others_can_help: string | null
   how_i_can_help: string | null
   country: string | null
-  seeking_work: boolean | null
+  seeking_work: string | null
   recruitment: string | null
   linkedin: string | null
   why_they_matter: string | null
@@ -219,7 +219,7 @@ export async function GET() {
       csvCell(a.how_others_can_help),
       csvCell(a.how_i_can_help),
       csvCell(a.country),
-      a.seeking_work === null ? '' : a.seeking_work ? 'true' : 'false',
+      csvCell(a.seeking_work),
       csvCell(a.recruitment),
       csvCell(a.linkedin),
       csvCell(a.why_they_matter),
