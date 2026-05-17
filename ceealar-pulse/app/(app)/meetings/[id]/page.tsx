@@ -49,20 +49,20 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
   if (!user) notFound()
 
   const [
-    { data: meetingRaw },
+    { data: meetingRaw, error: meetingErr },
     { data: actionItemsRaw },
     { data: teamMembersRaw },
     { data: meetingMembersRaw },
   ] = await Promise.all([
     supabase
-      .from('meetings_view')
+      .from('meetings')
       .select(`
         *,
         attendees ( first_name, last_name ),
-        team_members ( display_name, email )
+        team_members!meetings_owner_id_fkey ( display_name, email )
       `)
       .eq('id', id)
-      .single(),
+      .maybeSingle(),
     supabase
       .from('action_items')
       .select('*')
@@ -77,9 +77,19 @@ export default async function MeetingDetailPage(props: { params: Promise<{ id: s
       .eq('meeting_id', id),
   ])
 
+  if (meetingErr) {
+    // Surface DB error to error.tsx instead of silently 404-ing
+    throw new Error(`Meeting fetch failed: ${meetingErr.message}`)
+  }
   if (!meetingRaw) notFound()
 
   const meeting = meetingRaw as unknown as MeetingRow
+
+  // Enforce prep_note privacy in app code (replaces the meetings_view CASE logic):
+  // owner sees their own prep_note any time; everyone sees it once status='done'.
+  if (meeting.owner_id !== user.id && meeting.status !== 'done') {
+    meeting.prep_note = null
+  }
   const actionItems: ActionItem[] = (actionItemsRaw ?? []) as ActionItem[]
   const teamMembers: TeamMember[] = (teamMembersRaw ?? []) as TeamMember[]
   const meetingMembers = ((meetingMembersRaw ?? []) as unknown as Array<{
