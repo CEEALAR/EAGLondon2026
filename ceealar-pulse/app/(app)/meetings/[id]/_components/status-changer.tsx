@@ -21,18 +21,27 @@ const STATUS_LABELS: Record<MeetingStatus, string> = {
 }
 
 const STATUS_CLASSES: Record<MeetingStatus, string> = {
-  want_to_meet: 'bg-gray-100 text-gray-700',
-  planned:      'bg-teal-100 text-teal-800',
-  done:         'bg-yellow-100 text-yellow-800',
-  no_show:      'bg-gray-200 text-gray-500',
-  cancelled:    'bg-gray-200 text-gray-500',
+  want_to_meet: 'bg-amber-50 text-amber-800 border-amber-200',
+  planned:      'bg-teal-50 text-teal-800 border-teal-200',
+  done:         'bg-emerald-50 text-emerald-800 border-emerald-200',
+  no_show:      'bg-gray-50 text-gray-500 border-gray-200',
+  cancelled:    'bg-gray-50 text-gray-400 border-gray-200 line-through',
+}
+
+const STATUS_DOTS: Record<MeetingStatus, string> = {
+  want_to_meet: 'bg-amber-500',
+  planned:      'bg-[var(--color-teal)]',
+  done:         'bg-emerald-500',
+  no_show:      'bg-gray-400',
+  cancelled:    'bg-gray-300',
 }
 
 export function StatusBadge({ status }: { status: MeetingStatus }) {
   return (
     <span
-      className={`inline-block text-sm font-medium px-3 py-1 rounded-full ${STATUS_CLASSES[status]}`}
+      className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border ${STATUS_CLASSES[status]}`}
     >
+      <span className={`w-1.5 h-1.5 rounded-full ${STATUS_DOTS[status]}`} aria-hidden />
       {STATUS_LABELS[status]}
     </span>
   )

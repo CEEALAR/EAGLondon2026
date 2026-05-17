@@ -226,12 +226,20 @@ export function AttendeeList({ attendees, allTags }: AttendeeListProps) {
       {/* Scrollable virtual list */}
       <div ref={parentRef} className="flex-1 overflow-auto relative">
         {filtered.length === 0 ? (
-          <div className="flex items-center justify-center h-full px-4">
-            <p className="text-muted-foreground text-sm text-center">
-              {debouncedQuery || appliedCount > 0
-                ? 'No attendees match your search and filters'
-                : 'No attendees imported yet — visit /admin'}
-            </p>
+          <div className="flex flex-col items-center justify-center h-full px-6 text-center gap-3 fade-up">
+            <div className="w-14 h-14 rounded-full bg-muted/60 flex items-center justify-center">
+              <span className="text-2xl">🔍</span>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-foreground">
+                {debouncedQuery || appliedCount > 0 ? 'No matches' : 'No attendees yet'}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1 max-w-xs">
+                {debouncedQuery || appliedCount > 0
+                  ? 'Try a different search or clear some filters.'
+                  : 'Import the Swapcard XLSX from the Admin page to get started.'}
+              </p>
+            </div>
           </div>
         ) : (
           <div style={{ height: virtualizer.getTotalSize() }} className="relative w-full">

@@ -59,8 +59,16 @@ export async function MeetingsSidebar() {
 
     if (meetings.length === 0) {
       return (
-        <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-          <p className="text-sm text-muted-foreground">No meetings yet</p>
+        <div className="flex flex-col items-center justify-center py-12 px-4 text-center gap-3 fade-up">
+          <div className="w-14 h-14 rounded-full bg-[var(--color-teal)]/10 flex items-center justify-center">
+            <span className="text-2xl">📅</span>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-foreground">Nothing scheduled yet</p>
+            <p className="text-xs text-muted-foreground mt-1 max-w-xs">
+              Book 1:1s in Swapcard — they&apos;ll auto-sync once your iCal is connected on /me.
+            </p>
+          </div>
         </div>
       )
     }
