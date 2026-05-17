@@ -5,9 +5,23 @@
 See: `.planning/PROJECT.md` (updated 2026-05-14)
 
 **Core value:** Four CEEALAR team members can find, tag, schedule, and debrief any of 1,904 attendees from their phones with one hand while walking between sessions — no spreadsheet required.
-**Current focus:** Live — conference 29–31 May 2026.
+**Current focus:** Live — conference 29–31 May 2026 (11 days out).
 
 ## Current Phase
+
+**Phase 12: Field Testing & Operational Polish**
+- Status: Complete ✓ (shipped 2026-05-17 → 2026-05-18)
+- Summary: `.planning/phases/12-field-testing-fixes/12-SUMMARY.md`
+- Commits: d7ca502, 4dc6066, 03812fd, 5a89fd7, d772318, 2f462d9, 36eb710
+- Cross-repo: CEEALAR/design-system @ 5112a35 (v0.3.0)
+- Headline shipped:
+  - **Operational data**: priority XLSX → 26 want_to_meets assigned to Attila/Jonas via new idempotent script; dedup script cleaned 5 duplicates
+  - **Real bugs found in user testing**: /me silently returned 0 rows due to PGRST201 ambiguous embed on team_members; want-to-meet button had no DB-state awareness (every click duplicated); staleTimes.dynamic=60 served stale data after mutations; /me missing force-dynamic
+  - **Features**: attendee list filter/sort/query persistence (localStorage); assignee pills on each row; "Assigned to" filter dimension
+  - **Performance**: code-split /meetings/[id] (Edit/Delete dialogs, FollowUpDate, AttendeeProfileSection)
+  - **Design system**: CEEALAR/design-system v0.3.0 — palette aligned to Pulse (#0F766E teal, #D4A017 gold); new effects-and-motion.css with editorial utility classes; web is now canonical for digital surfaces
+
+## Previous Phases
 
 **Phase 10: Admin Overhaul + Security Pass**
 - Status: Complete ✓ (shipped 2026-05-17)
@@ -61,6 +75,7 @@ See: `.planning/PROJECT.md` (updated 2026-05-14)
 | Phase 9: Calendar Integration | Spec'd | — |
 | Phase 10: Admin + Security | Complete ✓ | 2026-05-17 |
 | Phase 11: Pre-Conference Polish | Complete ✓ | 2026-05-17 |
+| Phase 12: Field Testing Fixes | Complete ✓ | 2026-05-18 |
 
 ## Blocked On
 
@@ -126,3 +141,4 @@ Google OAuth configured in Supabase Auth dashboard (not env vars).
 *Session 2026-05-17 — Phase 8 complete. Fixed broken lightningcss native binary (npm install). Build passes clean. Wrote production README.md. All four SHIP requirements verified by Attila: phone sign-in, domain rejection, full smoke test (import→export), README pushed. v1.0 milestone DONE — all 9 phases complete, all 57 requirements met.*
 *Session 2026-05-17 (afternoon) — Phase 10 shipped (commits d86ad43, 760d112, 9372569, cae3ac7). (1) Admin page overhauled with per-person load bars, priority/category coverage progress bars, P5/P4 gaps list, oldest want-to-meets, calendar sync health, and a force-sync-all button (new endpoint POST /api/admin/sync-all, new helper lib/admin-stats.ts). (2) Inline priority editor (components/priority-editor.tsx + PATCH /api/attendees/[id]/priority) on attendee and meeting detail pages. (3) Full security review by Security Engineer agent — shipped C-1 auth callback hardening, C-2 SSRF defences in lib/ical-sync.ts (URL parse + host allowlist + redirect:'manual' + size cap), M-2 safeHttpUrl() filter in lib/utils.ts applied to all attendee link sites, H-1 audit log rows on priority/tag mutations (activity table actions: priority_changed/tag_added/tag_removed), H-4 scrubbed sync-all error details, M-4 25MB/5000-row XLSX upload caps. (4) CSP + security headers via middleware.ts. (5) Migration 0010 drops meetings.prep_note column + meetings_view (applied by user). Operational: user confirmed MFA on all 4 Google accounts, RLS enabled on every table, service-role key isolated to Vercel. Deferred items (H-2/H-3/M-1/M-3 accepted; xlsx@0.18.5 replacement scheduled post-conference). See .planning/phases/10-admin-and-security/10-SUMMARY.md for full handoff details.*
 *Session 2026-05-17 (evening) — Senior-architect pre-conference review by claude (acting as senior staff engineer) shipped as Phase 11 (commits cc36308, 180aaba). P0 ship-blockers: root app/error.tsx, /me/loading.tsx, OfflineBanner mounted in app/(app)/layout.tsx, action-items optimistic rollback + toast, find-time duration_minutes fix (was hardcoded 30 min). P1: realtime refresh debounce 2s leading-edge in RealtimeProvider, middleware matcher excludes manifest/robots/sitemap/.ico. P2: loading skeletons for /admin, /meetings/[id], /attendees/[id]; signin countdown adds post-conference phase + 30s tick instead of 1s; empty-state copy normalized to "No X yet — why/how"; useMemo dep wrap on dayData. next/image with images.remotePatterns for lh3.googleusercontent.com (Google avatars in TopNav + /me). P3: .nvmrc pins Node 22, app/not-found.tsx custom 404. Lint 3→0 warnings. Bundle sizes unchanged. See .planning/phases/11-pre-conference-polish/11-SUMMARY.md.*
+*Session 2026-05-17 late → 2026-05-18 — Phase 12 driven by hands-on user testing. (1) Code-split /meetings/[id] (d7ca502): Edit/Delete dialogs + FollowUpDate + AttendeeProfileSection now lazy via next/dynamic; non-owners skip dialog chunks. (2) Operational: scripts/assign-priority-owners.mjs (4dc6066) wrote 26 want_to_meet rows from the Top-50 XLSX Owner column (15 Attila, 11 Jonas) idempotently; scripts/dedup-want-to-meets.mjs (2f462d9) collapsed 5 dupes for Michael Aird from pre-fix button clicks. (3) Real bugs: /me silently returned 0 rows because team_members(...) embed became ambiguous after migration 0004 added meeting_members as a 2nd FK path — fixed with !meetings_owner_id_fkey hint (36eb710); want-to-meet button created duplicates because it had no awareness of existing rows — now reads existingWantToMeet from server, renders "On your list" pill with checkmark, click triggers DELETE (d772318); /me missing force-dynamic (03812fd); next.config staleTimes.dynamic=60 was caching client RSC for 60s → set to 0 (d772318). (4) Features: attendee list filter/sort/query persistence to localStorage key pulse.attendees.prefs.v1 (5a89fd7); assignee pills (colored initial chips) on each attendee row + "Assigned to" filter dimension with chips + persistence (36eb710). (5) Cross-repo: CEEALAR/design-system v0.3.0 (5112a35) — palette migrated to Pulse production values (#0F766E teal, #D4A017 gold), added effects-and-motion.css with editorial utility classes (.editorial-h1/-eyebrow/.hr-editorial/.hero-header/.glass/.press/.lift/.fade-up/.stagger), README rewritten, "web is canonical for digital surfaces" called out. Pulse globals.css already matches v0.3 (Pulse is where the values came from). See .planning/phases/12-field-testing-fixes/12-SUMMARY.md.*

@@ -84,6 +84,13 @@ Brand: DM Sans body, Playfair Display italic for one accent per screen, teal-700
 | Server-side fetch of user-supplied URLs requires the SSRF playbook | Phase 10 — `new URL()` parse, hostname allowlist, `redirect: 'manual'`, response size cap. Reference impl: `lib/ical-sync.ts` `fetchICalText()` | Active (Phase 10) |
 | Security headers (CSP + friends) live in `middleware.ts` `applySecurityHeaders()` | Phase 10 — applied to every response including redirects. CSP allows `'unsafe-inline'` for script/style because Next.js needs it; real defence is `object-src 'none'`, `frame-ancestors 'none'`, `base-uri 'self'`, `connect-src` locked to Supabase host | Active (Phase 10) |
 | `xlsx@0.18.5` known-CVE package retained until post-conference | Auth-gated to 4 trusted users; replacement is behaviour-change in import path — too risky pre-conference. **Replace post-2026-05-31** with SheetJS CDN build or `exceljs` | Active (Phase 10) |
+| Every `meetings → team_members` embed MUST use a FK hint | Phase 12 found B-1: `team_members(...)` is ambiguous because migration 0004 added `meeting_members` as a second FK path. PostgREST throws PGRST201 and returns null silently. Use `team_members!meetings_owner_id_fkey(...)` or `team_members!meeting_members_user_id_fkey(...)` depending on which relationship is meant | Active (Phase 12) |
+| Mutating buttons MUST be DB-state-aware | Phase 12 found B-2: a button that always says "Want to meet" creates duplicates on repeat clicks. Pattern: server passes `existing<X>: {…} \| null` to the client component, which renders different UI for "doesn't exist" (create) vs "exists" (remove). No 2-second "Added" flash that reverts | Active (Phase 12) |
+| User-specific routes MUST have `export const dynamic = 'force-dynamic'` | Phase 12 — `/me` was the lone exception; combined with the previous `staleTimes.dynamic: 60` it served stale state for up to a minute after mutations. Apply to `/me`, `/feed`, `/admin`, any future user-specific page | Active (Phase 12) |
+| `next.config.ts` `staleTimes.dynamic: 0` (Next 15 default) | Phase 12 trade-off: snappy back/forward navigation vs. freshness after mutations. For an internal coordination tool, freshness wins | Active (Phase 12) |
+| Persisted UI prefs go in `localStorage` with versioned keys (`pulse.<area>.prefs.v<N>`) | Phase 12 pattern in `attendee-list.tsx`. Bump version suffix if the FilterState shape changes in a breaking way. Sets serialise as arrays (`filtersToJson` / `filtersFromJson`) | Active (Phase 12) |
+| Web is canonical for digital surfaces; Canva sources may drift | Phase 12: design-system v0.3 migrated palette from Canva-extracted v0.2 (`#018498` teal) to Pulse production (`#0F766E` teal). Future digital work pulls from `CEEALAR/design-system` (v0.3+); print/Canva work stays separate | Active (Phase 12) |
+| Cross-repo design-system updates flow Pulse → design-system | Phase 12 set precedent: when web evolves a token, push to `CEEALAR/design-system` (don't redefine in each consumer). Files of record: `colors_and_type.css` + `effects-and-motion.css` + `tokens.json` | Active (Phase 12) |
 
 ## Evolution
 
@@ -103,4 +110,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-17 after Phase 10 (admin overhaul + security pass)*
+*Last updated: 2026-05-18 after Phase 12 (field testing fixes + design-system v0.3)*
