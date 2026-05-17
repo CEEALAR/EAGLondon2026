@@ -41,5 +41,14 @@ export async function GET(request: NextRequest) {
     { onConflict: 'id' }
   )
 
-  return NextResponse.redirect(`${origin}/attendees`)
+  // First-time / no-calendar users land on /me so they can set up the iCal
+  // sync. Returning users with a connected calendar go straight to /attendees.
+  const { data: ical } = await adminClient
+    .from('user_ical_urls')
+    .select('user_id')
+    .eq('user_id', user.id)
+    .maybeSingle()
+
+  const destination = ical ? '/attendees' : '/me?welcome=1'
+  return NextResponse.redirect(`${origin}${destination}`)
 }

@@ -5,6 +5,7 @@ import { TopNav } from '@/components/nav/top-nav'
 import { RealtimeProvider } from '@/components/realtime-provider'
 import { NotificationProvider } from '@/components/notification-provider'
 import { CalendarAutoSync } from '@/components/calendar-auto-sync'
+import { CalendarSetupBanner } from '@/components/calendar-setup-banner'
 import { Toaster } from '@/components/ui/sonner'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -32,6 +33,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <div className="min-h-screen bg-[var(--color-cream)]">
       <TopNav user={userForNav} />
       <main className="md:pt-14 pb-16 md:pb-0">
+        <CalendarSetupBanner userId={user.id} />
         <NotificationProvider>
           <RealtimeProvider>{children}</RealtimeProvider>
         </NotificationProvider>

@@ -143,8 +143,20 @@ export default async function MePage() {
       </div>
 
       {/* Calendar */}
-      <div className="border rounded-lg p-4 bg-card space-y-3">
-        <h2 className="text-base font-semibold">Calendar</h2>
+      <div
+        id="calendar"
+        className={`border rounded-lg p-4 bg-card space-y-3 ${
+          !calendar ? 'ring-2 ring-[var(--color-gold)]/40 ring-offset-2 ring-offset-[var(--color-cream)] shadow-md' : ''
+        }`}
+      >
+        <h2 className="text-base font-semibold flex items-center gap-2">
+          Calendar
+          {!calendar && (
+            <span className="inline-flex items-center text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-[var(--color-gold)]/20 text-[var(--color-gold)]">
+              Set up
+            </span>
+          )}
+        </h2>
         <CalendarSection initialCalendar={calendar} />
       </div>
 
