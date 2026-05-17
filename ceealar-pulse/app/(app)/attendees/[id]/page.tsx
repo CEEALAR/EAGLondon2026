@@ -180,6 +180,9 @@ export default async function AttendeeDetailPage(props: { params: Promise<{ id: 
               attendeeId={attendee.id}
               swapcardUrl={attendee.swapcard_url}
               currentUserId={user.id}
+              existingWantToMeet={meetings.find(
+                (m) => m.owner_id === user.id && m.status === 'want_to_meet'
+              ) ? { id: meetings.find((m) => m.owner_id === user.id && m.status === 'want_to_meet')!.id } : null}
             />
           )}
           {user && (

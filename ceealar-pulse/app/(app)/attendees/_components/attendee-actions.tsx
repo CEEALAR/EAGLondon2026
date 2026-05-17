@@ -10,23 +10,35 @@ interface Props {
   attendeeId: string
   swapcardUrl: string
   currentUserId: string
+  /**
+   * Pre-existing want_to_meet meeting owned by the current user for this
+   * attendee, if any. When non-null, the button shows a persistent "On your
+   * list" state and clicking it removes the meeting instead of adding.
+   */
+  existingWantToMeet: { id: string } | null
 }
 
 /**
  * Primary attendee actions:
  *   1. "Schedule in Swapcard" — opens Swapcard in a new tab (the actual
  *      booking happens there; iCal sync brings the meeting back to Pulse)
- *   2. "Want to Meet" — one-click creates a want_to_meet Pulse record for
- *      the current user. No dialog.
+ *   2. "Want to meet" — toggles a want_to_meet Pulse record for the current
+ *      user. Idempotent: knows whether a row already exists and acts accordingly.
  */
-export function AttendeeActions({ attendeeId, swapcardUrl, currentUserId }: Props) {
+export function AttendeeActions({
+  attendeeId,
+  swapcardUrl,
+  currentUserId,
+  existingWantToMeet,
+}: Props) {
   const router = useRouter()
-  const [wantState, setWantState] = useState<'idle' | 'saving' | 'done'>('idle')
+  const [busy, setBusy] = useState(false)
 
   const isSynthetic = swapcardUrl.startsWith('synthetic://')
+  const isOnList = !!existingWantToMeet
 
-  async function handleWantToMeet() {
-    setWantState('saving')
+  async function handleAdd() {
+    setBusy(true)
     try {
       const res = await fetch('/api/meetings', {
         method: 'POST',
@@ -38,19 +50,31 @@ export function AttendeeActions({ attendeeId, swapcardUrl, currentUserId }: Prop
           scheduled_at: null,
         }),
       })
-      if (!res.ok) {
-        const text = await res.text()
-        toast.error(`Couldn't add: ${text}`)
-        setWantState('idle')
-        return
-      }
+      if (!res.ok) throw new Error(await res.text())
       toast.success('Added to your Want to Meet list')
-      setWantState('done')
       router.refresh()
-      setTimeout(() => setWantState('idle'), 2200)
     } catch (e) {
-      toast.error(`Error: ${String(e)}`)
-      setWantState('idle')
+      toast.error(e instanceof Error ? e.message : 'Could not add')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function handleRemove() {
+    if (!existingWantToMeet) return
+    if (!confirm('Remove from your Want to Meet list?')) return
+    setBusy(true)
+    try {
+      const res = await fetch(`/api/meetings/${existingWantToMeet.id}`, {
+        method: 'DELETE',
+      })
+      if (!res.ok) throw new Error(await res.text())
+      toast.success('Removed from Want to Meet')
+      router.refresh()
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Could not remove')
+    } finally {
+      setBusy(false)
     }
   }
 
@@ -68,19 +92,19 @@ export function AttendeeActions({ attendeeId, swapcardUrl, currentUserId }: Prop
         </a>
       )}
       <Button
-        variant="outline"
+        variant={isOnList ? 'default' : 'outline'}
         size="sm"
-        onClick={handleWantToMeet}
-        disabled={wantState !== 'idle'}
-        className="h-9"
+        onClick={isOnList ? handleRemove : handleAdd}
+        disabled={busy}
+        className={`h-9 ${isOnList ? 'bg-[var(--color-teal)]/10 text-[var(--color-teal)] border border-[var(--color-teal)]/30 hover:bg-[var(--color-teal)]/15' : ''}`}
+        title={isOnList ? 'On your Want to Meet list — click to remove' : 'Add to your Want to Meet list'}
       >
-        {wantState === 'saving' && (
+        {busy ? (
           <Loader2 size={14} className="mr-1.5 animate-spin" />
-        )}
-        {wantState === 'done' && (
-          <Check size={14} className="mr-1.5 text-[var(--color-teal)]" />
-        )}
-        {wantState === 'done' ? 'Added' : 'Want to meet'}
+        ) : isOnList ? (
+          <Check size={14} className="mr-1.5" />
+        ) : null}
+        {isOnList ? 'On your list' : 'Want to meet'}
       </Button>
     </>
   )
