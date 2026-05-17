@@ -1,0 +1,38 @@
+name: Check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    name: typecheck + lint + build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ceealar-pulse
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ceealar-pulse/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      # `next build` needs the public env vars at build time even if it only
+      # static-analyses pages. These are public anyway (the anon key is meant
+      # to be exposed to the browser). The service-role key is not required
+      # for `next build` and is deliberately omitted from CI.
+      - name: Build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key-for-ci
+        run: npm run check
