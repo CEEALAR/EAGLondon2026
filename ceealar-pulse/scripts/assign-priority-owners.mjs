@@ -23,8 +23,9 @@ const SRC_XLSX = '/Users/attilaujvari/Library/CloudStorage/OneDrive-CEEALAR/CEEA
 const APPLY = process.argv.includes('--apply')
 
 const OWNER_MAP = {
-  attila: { match: ['attila', 'attila ujvari'], email: 'attila@ceealar.org' },
-  jonas:  { match: ['jonas'],                    email: 'jonas@ceealar.org'  },
+  attila: { match: ['attila', 'attila ujvari'],     email: 'attila@ceealar.org' },
+  jonas:  { match: ['jonas'],                        email: 'jonas@ceealar.org'  },
+  david:  { match: ['david', 'david staley'],        email: 'david@ceealar.org'  },
 }
 
 function norm(s) {
@@ -85,7 +86,8 @@ async function main() {
     })
   }
 
-  console.log(`\nFound ${targets.length} rows owned by Attila or Jonas`)
+  const knownOwners = Object.keys(OWNER_MAP).join(' or ')
+  console.log(`\nFound ${targets.length} rows owned by ${knownOwners}`)
 
   // 3. Look up team_member ids by email
   const emails = [...new Set(Object.values(OWNER_MAP).map((o) => o.email))]
